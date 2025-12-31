@@ -1,0 +1,137 @@
+/* ========================================
+   🔥 FINAL WELCOME SECTION - 2 COLUMNS
+======================================== */
+.welcome {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+  padding-top: 64px; /* navbar space */
+}
+
+.welcome-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 20px;
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Text | Image only */
+  align-items: start;
+  gap: 60px;
+}
+
+/* CENTER CONTENT (MAIN) */
+.welcome-center {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.welcome-text {
+  text-align: left;
+}
+
+.welcome-text h1 {
+  font-size: clamp(2.8rem, 6vw, 4rem);
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.15;
+  margin: 0 0 20px 0;
+}
+
+.welcome-text h1 span {
+  color: #d32f2f;
+}
+
+.welcome-text p {
+  font-size: 1.15rem;
+  color: #64748b;
+  line-height: 1.75;
+  margin: 0;
+  max-width: 550px;
+}
+
+/* PROFESSIONAL BUTTON */
+.welcome-btn {
+  padding: 16px 40px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: #d32f2f;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(211,47,47,0.25);
+  transition: all 0.25s ease;
+  align-self: flex-start;
+  width: fit-content;
+}
+
+.welcome-btn:hover {
+  background: #b71c1c;
+  box-shadow: 0 15px 35px rgba(211,47,47,0.35);
+  transform: translateY(-2px);
+}
+
+.welcome-btn:active {
+  transform: translateY(0);
+}
+
+/* RIGHT IMAGE ONLY */
+.welcome-right-image {
+  display: flex;
+  justify-content: center;
+}
+
+.welcome-right-image img {
+  width: 100%;
+  max-width: 450px;
+  height: auto;
+  border-radius: 20px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .welcome-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+    padding: 30px 20px;
+  }
+  
+  .welcome-right-image img {
+    max-width: 320px;
+  }
+  
+  .welcome-text {
+    text-align: center;
+  }
+  
+  .welcome-text h1 {
+    font-size: 2.8rem;
+  }
+  
+  .welcome-btn {
+    align-self: center;
+    padding: 14px 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome {
+    padding: 20px 0;
+  }
+  
+  .welcome-text h1 {
+    font-size: 2.2rem;
+  }
+  
+  .welcome-text p {
+    font-size: 1.05rem;
+  }
+  
+  .welcome-right-image img {
+    max-width: 280px;
+  }
+}
