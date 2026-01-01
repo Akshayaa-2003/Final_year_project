@@ -2,6 +2,20 @@ import { useEffect, useState } from "react";
 import "./InputSection.css";
 import { API_BASE_URL } from "../services/api";
 
+// 🔥 SAFE FETCH HELPER
+const safeFetch = async (url, options = {}) => {
+  const res = await fetch(url, {
+    mode: "cors",
+    ...options
+  });
+
+  if (!res.ok) {
+    throw new Error(`Request failed: ${res.status}`);
+  }
+
+  return res.json();
+};
+
 export default function InputSection({ onPredict, detectedCity }) {
   const [cities, setCities] = useState([]);
   const [city, setCity] = useState("");
@@ -21,13 +35,14 @@ export default function InputSection({ onPredict, detectedCity }) {
   =============================== */
   useEffect(() => {
     setLoadingCities(true);
-    fetch(`${API_BASE_URL}/api/places/cities`)
-      .then(res => res.json())
-      .then(data => {
-        setCities(Array.isArray(data) ? data : []);
-        setLoadingCities(false);
+
+    safeFetch(`${API_BASE_URL}/api/places/cities`)
+      .then(data => setCities(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error("❌ Cities fetch failed:", err.message);
+        setCities([]);
       })
-      .catch(() => setLoadingCities(false));
+      .finally(() => setLoadingCities(false));
   }, []);
 
   /* ===============================
@@ -44,7 +59,7 @@ export default function InputSection({ onPredict, detectedCity }) {
   }, [detectedCity, cities]);
 
   /* ===============================
-     FETCH LOCATION TYPES (BY CITY)
+     FETCH LOCATION TYPES
   =============================== */
   useEffect(() => {
     if (!city) return;
@@ -55,19 +70,19 @@ export default function InputSection({ onPredict, detectedCity }) {
     setPlaces([]);
     setPlace("");
 
-    fetch(
+    safeFetch(
       `${API_BASE_URL}/api/places/location-types?city=${encodeURIComponent(city)}`
     )
-      .then(res => res.json())
-      .then(data => {
-        setLocationTypes(Array.isArray(data) ? data : []);
-        setLoadingLocationTypes(false);
+      .then(data => setLocationTypes(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error("❌ Location types failed:", err.message);
+        setLocationTypes([]);
       })
-      .catch(() => setLoadingLocationTypes(false));
+      .finally(() => setLoadingLocationTypes(false));
   }, [city]);
 
   /* ===============================
-     FETCH PLACES (BY CITY + TYPE)
+     FETCH PLACES
   =============================== */
   useEffect(() => {
     if (!city || !locationType) return;
@@ -76,39 +91,46 @@ export default function InputSection({ onPredict, detectedCity }) {
     setPlaces([]);
     setPlace("");
 
-    fetch(
+    safeFetch(
       `${API_BASE_URL}/api/places?city=${encodeURIComponent(city)}&locationType=${encodeURIComponent(locationType)}`
     )
-      .then(res => res.json())
-      .then(data => {
-        setPlaces(Array.isArray(data) ? data : []);
-        setLoadingPlaces(false);
+      .then(data => setPlaces(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error("❌ Places fetch failed:", err.message);
+        setPlaces([]);
       })
-      .catch(() => setLoadingPlaces(false));
+      .finally(() => setLoadingPlaces(false));
   }, [city, locationType]);
 
   /* ===============================
      PREDICT
   =============================== */
   const handlePredict = async () => {
-    const payload = {
-      city,
-      locationType,
-      place: place || "Not specified",
-    };
+    try {
+      const payload = {
+        city,
+        locationType,
+        place: place || "Not specified"
+      };
 
-    const res = await fetch(`${API_BASE_URL}/api/predict`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      const data = await safeFetch(
+        `${API_BASE_URL}/api/predict`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }
+      );
 
-    const data = await res.json();
-    onPredict(data);
+      onPredict(data);
 
-    document
-      .querySelector("#results")
-      ?.scrollIntoView({ behavior: "smooth" });
+      document
+        .querySelector("#results")
+        ?.scrollIntoView({ behavior: "smooth" });
+    } catch (err) {
+      console.error("❌ Prediction failed:", err.message);
+      alert("Prediction service temporarily unavailable. Try again.");
+    }
   };
 
   return (
@@ -117,7 +139,6 @@ export default function InputSection({ onPredict, detectedCity }) {
         <h2 className="section-title">Predict Crowd Level</h2>
 
         <div className="input-grid">
-
           {/* CITY */}
           <div className="form-group">
             <label>City</label>
@@ -130,7 +151,7 @@ export default function InputSection({ onPredict, detectedCity }) {
                 {loadingCities ? "Loading cities..." : "Select city"}
               </option>
               {cities.map((c, i) => (
-                <option key={`${c}-${i}`} value={c}>{c}</option>
+                <option key={i} value={c}>{c}</option>
               ))}
             </select>
           </div>
@@ -147,7 +168,7 @@ export default function InputSection({ onPredict, detectedCity }) {
                 {loadingLocationTypes ? "Loading..." : "Select location type"}
               </option>
               {locationTypes.map((l, i) => (
-                <option key={`${l}-${i}`} value={l}>{l}</option>
+                <option key={i} value={l}>{l}</option>
               ))}
             </select>
           </div>
@@ -167,13 +188,11 @@ export default function InputSection({ onPredict, detectedCity }) {
                   ? "No places found"
                   : "Select place"}
               </option>
-
               {places.map((p, i) => (
-                <option key={`${p}-${i}`} value={p}>{p}</option>
+                <option key={i} value={p}>{p}</option>
               ))}
             </select>
           </div>
-
         </div>
 
         <button
