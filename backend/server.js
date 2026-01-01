@@ -10,20 +10,19 @@ dotenv.config();
 const app = express();
 
 /* ===============================
-   MIDDLEWARES (🔥 FINAL CORS FIX)
+   FORCE CORS (ALWAYS SENT)
 ================================ */
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
+    "GET, POST, OPTIONS"
   );
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
+    "Content-Type"
   );
 
-  // 🔥 Handle preflight
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
@@ -44,18 +43,18 @@ app.use("/api/location", locationRoutes);
    HEALTH CHECK
 ================================ */
 app.get("/", (req, res) => {
-  res.status(200).json({
+  res.json({
     status: "ok",
     message: "Crowd Prediction Backend Running"
   });
 });
 
 /* ===============================
-   404 HANDLER
+   FAIL-SAFE 404
 ================================ */
 app.use((req, res) => {
   res.status(404).json({
-    error: "API route not found",
+    error: "Route not found",
     path: req.originalUrl
   });
 });
