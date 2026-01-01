@@ -9,19 +9,11 @@ dotenv.config();
 
 const app = express();
 
-/* ===============================
-   FORCE CORS (ALWAYS SENT)
-================================ */
+/* ===== FORCE CORS (ALWAYS SENT) ===== */
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, OPTIONS"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type"
-  );
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
@@ -32,16 +24,12 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-/* ===============================
-   API ROUTES
-================================ */
+/* ===== API ROUTES ===== */
 app.use("/api/places", placesRoutes);
 app.use("/api/predict", predictRoutes);
 app.use("/api/location", locationRoutes);
 
-/* ===============================
-   HEALTH CHECK
-================================ */
+/* ===== HEALTH CHECK ===== */
 app.get("/", (req, res) => {
   res.json({
     status: "ok",
@@ -49,19 +37,7 @@ app.get("/", (req, res) => {
   });
 });
 
-/* ===============================
-   FAIL-SAFE 404
-================================ */
-app.use((req, res) => {
-  res.status(404).json({
-    error: "Route not found",
-    path: req.originalUrl
-  });
-});
-
-/* ===============================
-   SERVER
-================================ */
+/* ===== SERVER ===== */
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
