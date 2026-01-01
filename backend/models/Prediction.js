@@ -1,16 +1,15 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const predictionSchema = new mongoose.Schema({
-  city: String,
-  location: String,
-  activity: String,
-  crowdLevel: String,
-  time: String,
-  day: String,
-  createdAt: {
-    type: Date,
-    default: Date.now,
+const predictionSchema = new mongoose.Schema(
+  {
+    city: String,
+    locationType: String,
+    place: String,
+    activityLevel: String,
+    crowdLevel: String,
+    score: Number
   },
-});
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("Prediction", predictionSchema);
+export default mongoose.model("Prediction", predictionSchema);

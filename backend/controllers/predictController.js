@@ -1,29 +1,26 @@
-const Prediction = require("../models/Prediction");
-const { getCrowdLevel } = require("../utils/crowdLogic");
+import Prediction from "../models/Prediction.js";
+import { calculateCrowd } from "../utils/crowdLogic.js";
 
-exports.predictCrowd = async (req, res) => {
-  try {
-    const { city, location, activity } = req.body;
+export const predictCrowd = async (req, res) => {
+  const { city, locationType, place, activityLevel } = req.body;
 
-    if (!city || !location || !activity) {
-      return res.status(400).json({ error: "Missing fields" });
-    }
+  const result = calculateCrowd({
+    locationType,
+    place,
+    activityLevel
+  });
 
-    const crowdLevel = getCrowdLevel(activity);
+  const prediction = await Prediction.create({
+    city,
+    locationType,
+    place,
+    activityLevel,
+    crowdLevel: result.crowdLevel,
+    score: result.score
+  });
 
-    const prediction = new Prediction({
-      city,
-      location,
-      activity,
-      crowdLevel,
-      time: new Date().toLocaleTimeString(),
-      day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
-    });
-
-    await prediction.save();
-
-    res.json(prediction);
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
+  res.json({
+    ...prediction.toObject(),
+    time: result.time
+  });
 };

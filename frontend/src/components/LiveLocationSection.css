@@ -1,0 +1,187 @@
+/* ===============================
+   LIVE LOCATION SECTION
+================================ */
+.live-section {
+  min-height: 90vh;
+  padding: 80px 20px;
+  background: linear-gradient(135deg, #f8fafc, #eef2f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* MAIN LAYOUT */
+.live-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+
+  max-width: 1100px;
+  width: 100%;
+}
+
+/* ===============================
+   LEFT – PROCESS
+================================ */
+.live-left {
+  background: #ffffff;
+  padding: 48px;
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+}
+
+.live-left h2 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  margin-bottom: 28px;
+  color: #111827;
+}
+
+/* STEPS */
+.live-steps {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 36px;
+}
+
+.live-steps li {
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-weight: 500;
+  border-left: 4px solid #d1d5db;
+}
+
+.live-steps li.done {
+  background: #ecfdf5;
+  color: #065f46;
+  border-left-color: #10b981;
+}
+
+/* BUTTON */
+.live-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  box-shadow: 0 12px 30px rgba(211,47,47,0.35);
+  transition: all 0.25s ease;
+}
+
+.live-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(211,47,47,0.45);
+}
+
+.live-btn:disabled {
+  background: #fca5a5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ERROR */
+.live-error {
+  margin-top: 16px;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* ===============================
+   RIGHT – RESULT
+================================ */
+.live-right {
+  background: #ffffff;
+  padding: 48px;
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+}
+
+.hint {
+  color: #9ca3af;
+  font-size: 0.95rem;
+}
+
+/* CITY */
+.live-right h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #111827;
+}
+
+/* PLACES */
+.places-box {
+  margin-bottom: 28px;
+}
+
+.places-box h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #374151;
+}
+
+.places-box ul {
+  list-style: none;
+  padding: 0;
+}
+
+.places-box li {
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+  font-size: 0.95rem;
+}
+
+/* CROWD */
+.crowd-box p {
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+.crowd {
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.crowd.low {
+  color: #16a34a;
+}
+
+.crowd.medium {
+  color: #d97706;
+}
+
+.crowd.high {
+  color: #dc2626;
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width: 900px) {
+  .live-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .live-left,
+  .live-right {
+    padding: 32px 24px;
+  }
+
+  .live-left h2 {
+    font-size: 1.6rem;
+  }
+}

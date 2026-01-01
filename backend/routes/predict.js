@@ -1,7 +1,7 @@
-const express = require("express");
-const router = express.Router();
-const { predictCrowd } = require("../controllers/predictController");
+import express from "express";
+import { predictCrowd } from "../controllers/predictController.js";
 
+const router = express.Router();
 router.post("/", predictCrowd);
 
-module.exports = router;
+export default router;
