@@ -1,8 +1,6 @@
 import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
 
-import connectDB from "./config/db.js";
 import placesRoutes from "./routes/places.js";
 import predictRoutes from "./routes/predict.js";
 import locationRoutes from "./routes/location.js";
@@ -12,28 +10,26 @@ dotenv.config();
 const app = express();
 
 /* ===============================
-   DATABASE (SAFE CONNECT)
+   MIDDLEWARES (🔥 FINAL CORS FIX)
 ================================ */
-(async () => {
-  try {
-    await connectDB();
-    console.log("✅ Database connected");
-  } catch {
-    console.warn("⚠️ Database connection skipped / failed");
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+
+  // 🔥 Handle preflight
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
   }
-})();
 
-/* ===============================
-   MIDDLEWARES (🔥 CORS FIX)
-================================ */
-app.use(cors({
-  origin: "*", // allow Vercel frontend
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
-// 🔥 HANDLE PREFLIGHT REQUESTS
-app.options("*", cors());
+  next();
+});
 
 app.use(express.json());
 
@@ -65,19 +61,9 @@ app.use((req, res) => {
 });
 
 /* ===============================
-   GLOBAL ERROR HANDLER
-================================ */
-app.use((err, req, res, next) => {
-  console.error("🔥 Server Error:", err.message);
-  res.status(500).json({
-    error: "Internal server error"
-  });
-});
-
-/* ===============================
    SERVER
 ================================ */
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
