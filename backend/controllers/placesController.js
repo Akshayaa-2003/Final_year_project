@@ -4,51 +4,48 @@ import { popularPlaces } from "../data/popularPlaces.js";
    GET CITIES
 =============================== */
 export const getCities = (req, res) => {
-  res.json(Object.keys(popularPlaces));
+  try {
+    const cities = Object.keys(popularPlaces);
+    return res.status(200).json(cities);
+  } catch (err) {
+    return res.status(500).json([]);
+  }
 };
 
 /* ===============================
-   GET LOCATION TYPES (FORMAT FIX)
+   GET LOCATION TYPES
 =============================== */
 export const getLocationTypes = (req, res) => {
   const { city } = req.query;
 
   if (!city || !popularPlaces[city]) {
-    return res.json([]);
+    return res.status(200).json([]);
   }
 
-  // 🔥 Bus_Stand → Bus Stand
   const types = Object.keys(popularPlaces[city]).map(key =>
     key.replaceAll("_", " ")
   );
 
-  res.json(types);
+  return res.status(200).json(types);
 };
 
 /* ===============================
-   GET PLACES (FINAL FIX)
+   GET PLACES
 =============================== */
 export const getPlaces = (req, res) => {
-  const { city, locationType } = req.query; // ✅ FIX
-
-  console.log("CITY:", city);
-  console.log("TYPE:", locationType);
+  const { city, locationType } = req.query;
 
   if (!city || !locationType) {
-    return res.json([]);
+    return res.status(200).json([]);
   }
 
-  // 🔥 Bus Stand → Bus_Stand
   const key = locationType.replaceAll(" ", "_");
-  console.log("KEY:", key);
-
   const rawPlaces = popularPlaces?.[city]?.[key];
-  console.log("RAW:", rawPlaces);
 
-  if (!rawPlaces) return res.json([]);
+  if (!rawPlaces) {
+    return res.status(200).json([]);
+  }
 
-  // send only names
   const places = rawPlaces.map(p => p.name);
-
-  res.json(places);
+  return res.status(200).json(places);
 };

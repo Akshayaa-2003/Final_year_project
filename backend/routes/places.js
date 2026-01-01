@@ -7,8 +7,8 @@ import {
 
 const router = express.Router();
 
-router.get("/cities", getCities);
+router.get("/cities", getCities);          // ✅ THIS FIXES /cities
 router.get("/location-types", getLocationTypes);
-router.get("/", getPlaces); // 🔥 FIX HERE
+router.get("/", getPlaces);
 
 export default router;
