@@ -1,9 +1,16 @@
 import express from "express";
-import { predictCrowd } from "../controllers/predictController.js";
 
 const router = express.Router();
 
-// 🔥 MUST BE ROOT POST
-router.post("/", predictCrowd);
+router.post("/", (req, res) => {
+  res.json({
+    city: req.body?.city || "Unknown",
+    locationType: req.body?.locationType || "Unknown",
+    place: req.body?.place || "Not specified",
+    finalCrowd: "Medium",
+    activityLevel: "Normal",
+    time: new Date().toLocaleString("en-IN")
+  });
+});
 
 export default router;
