@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import placesRoutes from "./routes/places.js";
 import predictRoutes from "./routes/predict.js";
-import locationRoutes from "./routes/location.js"; // 🔥 Live location routes
+import locationRoutes from "./routes/location.js";
 
 dotenv.config();
 
@@ -18,18 +18,23 @@ const app = express();
   try {
     await connectDB();
     console.log("✅ Database connected");
-  } catch (err) {
+  } catch {
     console.warn("⚠️ Database connection skipped / failed");
   }
 })();
 
 /* ===============================
-   MIDDLEWARES
+   MIDDLEWARES (🔥 CORS FIX)
 ================================ */
 app.use(cors({
-  origin: "*", // 🔥 safe for dev
-  methods: ["GET", "POST"]
+  origin: "*", // allow Vercel frontend
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// 🔥 HANDLE PREFLIGHT REQUESTS
+app.options("*", cors());
+
 app.use(express.json());
 
 /* ===============================
@@ -37,7 +42,7 @@ app.use(express.json());
 ================================ */
 app.use("/api/places", placesRoutes);
 app.use("/api/predict", predictRoutes);
-app.use("/api/location", locationRoutes); // 🔥 Live location API
+app.use("/api/location", locationRoutes);
 
 /* ===============================
    HEALTH CHECK
@@ -60,7 +65,7 @@ app.use((req, res) => {
 });
 
 /* ===============================
-   GLOBAL ERROR HANDLER (🔥 IMPORTANT)
+   GLOBAL ERROR HANDLER
 ================================ */
 app.use((err, req, res, next) => {
   console.error("🔥 Server Error:", err.message);
