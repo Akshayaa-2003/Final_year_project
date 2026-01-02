@@ -1,0 +1,36 @@
+/* ========================================
+   MAIN LAYOUT
+======================================== */
+
+.layout {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+/* ========================================
+   CONTENT AREA
+======================================== */
+
+.layout-content {
+  margin-left: var(--sidebar-collapsed);
+  width: calc(100% - var(--sidebar-collapsed));
+  min-height: calc(100vh - var(--navbar-height));
+  background: linear-gradient(
+    135deg,
+    #f8fafc 0%,
+    #f1f5f9 50%,
+    #ffffff 100%
+  );
+  transition: margin-left 0.25s ease, width 0.25s ease;
+}
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 900px) {
+  .layout-content {
+    margin-left: 0;
+    width: 100%;
+  }
+}

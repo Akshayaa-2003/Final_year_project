@@ -4,37 +4,52 @@ import "./ResultSection.css";
 export default function ResultSection({ result }) {
   const [loading, setLoading] = useState(false);
 
-  if (!result) return null;
+  if (!result || typeof result !== "object") return null;
 
-  // ✅ SAFE FIELD MAPPING
-  const city = result.city || "—";
+  /* ===============================
+     SAFE FIELD MAPPING
+  =============================== */
+  const city = result.city ?? "—";
+
   const location =
-    result.place ||
-    result.location ||
-    result.locationType ||
+    result.place ??
+    result.location ??
+    result.locationType ??
     "Not specified";
 
   const activity =
-    result.activityLevel ||
-    result.activity ||
+    result.activityLevel ??
+    result.activity ??
     "Normal";
 
   const crowd =
-    result.finalCrowd ||
-    result.crowdLevel ||
+    result.finalCrowd ??
+    result.crowdLevel ??
     "Unknown";
 
-  const time = result.time || new Date().toLocaleString("en-IN");
+  const time =
+    result.time ??
+    new Date().toLocaleString("en-IN");
 
+  /* ===============================
+     PDF DOWNLOAD (SAFE)
+  =============================== */
   const handleDownloadPDF = () => {
     setLoading(true);
 
     const printWindow = window.open("", "_blank");
 
+    if (!printWindow) {
+      alert("Popup blocked. Please allow popups to download the report.");
+      setLoading(false);
+      return;
+    }
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8" />
   <title>Crowd Prediction Report</title>
   <style>
     body {
@@ -106,14 +121,16 @@ export default function ResultSection({ result }) {
 </html>
 `;
 
+    printWindow.document.open();
     printWindow.document.write(htmlContent);
     printWindow.document.close();
 
     setTimeout(() => {
+      printWindow.focus();
       printWindow.print();
       printWindow.close();
       setLoading(false);
-    }, 300);
+    }, 400);
   };
 
   return (

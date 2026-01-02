@@ -1,24 +1,31 @@
 import { useEffect, useState } from "react";
 import "./InputSection.css";
 import { API_BASE_URL } from "../services/api";
+import { popularPlaces } from "../data/popularPlaces"; // Import static data
 
 // 🔥 SAFE FETCH HELPER
 const safeFetch = async (url, options = {}) => {
-  const res = await fetch(url, {
-    mode: "cors",
-    ...options
-  });
+  try {
+    const res = await fetch(url, {
+      mode: "cors",
+      ...options
+    });
 
-  if (!res.ok) {
-    throw new Error(`Request failed: ${res.status}`);
+    if (!res.ok) {
+      throw new Error(`Request failed: ${res.status}`);
+    }
+
+    return res.json();
+  } catch (err) {
+    console.error("❌ Fetch error:", err.message);
+    throw err;
   }
-
-  return res.json();
 };
 
 export default function InputSection({ onPredict, detectedCity }) {
   const [cities, setCities] = useState([]);
   const [city, setCity] = useState("");
+  const [cityError, setCityError] = useState("");
 
   const [locationTypes, setLocationTypes] = useState([]);
   const [locationType, setLocationType] = useState("");
@@ -26,23 +33,35 @@ export default function InputSection({ onPredict, detectedCity }) {
   const [places, setPlaces] = useState([]);
   const [place, setPlace] = useState("");
 
-  const [loadingCities, setLoadingCities] = useState(true);
+  const [loadingCities, setLoadingCities] = useState(false);
   const [loadingLocationTypes, setLoadingLocationTypes] = useState(false);
   const [loadingPlaces, setLoadingPlaces] = useState(false);
+  const [predictLoading, setPredictLoading] = useState(false);
 
   /* ===============================
-     FETCH CITIES
+     LOAD CITIES (FROM LOCAL DATA)
   =============================== */
   useEffect(() => {
     setLoadingCities(true);
+    setCityError("");
 
-    safeFetch(`${API_BASE_URL}/api/places/cities`)
-      .then(data => setCities(Array.isArray(data) ? data : []))
-      .catch(err => {
-        console.error("❌ Cities fetch failed:", err.message);
-        setCities([]);
-      })
-      .finally(() => setLoadingCities(false));
+    try {
+      // Get cities from static data
+      const cityList = Object.keys(popularPlaces);
+      
+      if (cityList.length === 0) {
+        setCityError("No cities available");
+      } else {
+        setCities(cityList);
+        console.log("✅ Cities loaded:", cityList.length);
+      }
+    } catch (err) {
+      console.error("❌ Cities load failed:", err.message);
+      setCityError("Failed to load cities.");
+      setCities([]);
+    } finally {
+      setLoadingCities(false);
+    }
   }, []);
 
   /* ===============================
@@ -51,18 +70,25 @@ export default function InputSection({ onPredict, detectedCity }) {
   useEffect(() => {
     if (!detectedCity || cities.length === 0) return;
 
-    const match = cities.find(c =>
+    const match = cities.find((c) =>
       detectedCity.toLowerCase().includes(c.toLowerCase())
     );
 
-    if (match) setCity(match);
+    if (match) {
+      setCity(match);
+      setCityError("");
+    }
   }, [detectedCity, cities]);
 
   /* ===============================
-     FETCH LOCATION TYPES
+     GET LOCATION TYPES (FROM LOCAL DATA)
   =============================== */
   useEffect(() => {
-    if (!city) return;
+    if (!city) {
+      setLocationTypes([]);
+      setLocationType("");
+      return;
+    }
 
     setLoadingLocationTypes(true);
     setLocationTypes([]);
@@ -70,66 +96,96 @@ export default function InputSection({ onPredict, detectedCity }) {
     setPlaces([]);
     setPlace("");
 
-    safeFetch(
-      `${API_BASE_URL}/api/places/location-types?city=${encodeURIComponent(city)}`
-    )
-      .then(data => setLocationTypes(Array.isArray(data) ? data : []))
-      .catch(err => {
-        console.error("❌ Location types failed:", err.message);
-        setLocationTypes([]);
-      })
-      .finally(() => setLoadingLocationTypes(false));
+    try {
+      // Get types from static data
+      const types = Object.keys(popularPlaces[city]).map((key) =>
+        key.replaceAll("_", " ")
+      );
+
+      setLocationTypes(types);
+      console.log(`✅ Location types for ${city}:`, types);
+    } catch (err) {
+      console.error("❌ Location types failed:", err.message);
+      setLocationTypes([]);
+    } finally {
+      setLoadingLocationTypes(false);
+    }
   }, [city]);
 
   /* ===============================
-     FETCH PLACES
+     GET PLACES (FROM LOCAL DATA)
   =============================== */
   useEffect(() => {
-    if (!city || !locationType) return;
+    if (!city || !locationType) {
+      setPlaces([]);
+      setPlace("");
+      return;
+    }
 
     setLoadingPlaces(true);
     setPlaces([]);
     setPlace("");
 
-    safeFetch(
-      `${API_BASE_URL}/api/places?city=${encodeURIComponent(city)}&locationType=${encodeURIComponent(locationType)}`
-    )
-      .then(data => setPlaces(Array.isArray(data) ? data : []))
-      .catch(err => {
-        console.error("❌ Places fetch failed:", err.message);
+    try {
+      // Convert location type key (spaces to underscores)
+      const key = locationType.replaceAll(" ", "_");
+
+      // Get places from static data
+      const rawPlaces = popularPlaces[city][key];
+
+      if (Array.isArray(rawPlaces)) {
+        const placesList = rawPlaces.map((p) => p.name);
+        setPlaces(placesList);
+        console.log(`✅ Places for ${city} - ${locationType}:`, placesList);
+      } else {
         setPlaces([]);
-      })
-      .finally(() => setLoadingPlaces(false));
+      }
+    } catch (err) {
+      console.error("❌ Places fetch failed:", err.message);
+      setPlaces([]);
+    } finally {
+      setLoadingPlaces(false);
+    }
   }, [city, locationType]);
 
   /* ===============================
-     PREDICT
+     PREDICT (STILL USES BACKEND API)
   =============================== */
   const handlePredict = async () => {
+    if (!city || !locationType) {
+      alert("Please select city and location type");
+      return;
+    }
+
+    setPredictLoading(true);
+
     try {
       const payload = {
         city,
         locationType,
-        place: place || "Not specified"
+        place: place || "General"
       };
 
-      const data = await safeFetch(
-        `${API_BASE_URL}/api/predict`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }
-      );
+      const data = await safeFetch(`${API_BASE_URL}/api/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
       onPredict(data);
 
-      document
-        .querySelector("#results")
-        ?.scrollIntoView({ behavior: "smooth" });
+      // Scroll to results
+      setTimeout(() => {
+        document.querySelector("#results")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }, 300);
     } catch (err) {
       console.error("❌ Prediction failed:", err.message);
-      alert("Prediction service temporarily unavailable. Try again.");
+      alert("Failed to predict. Please try again.");
+    } finally {
+      setPredictLoading(false);
     }
   };
 
@@ -137,59 +193,82 @@ export default function InputSection({ onPredict, detectedCity }) {
     <section className="input-section" id="predict">
       <div className="input-box">
         <h2 className="section-title">Predict Crowd Level</h2>
+        <p className="section-subtitle">
+          Select your location details to get crowd predictions
+        </p>
 
         <div className="input-grid">
           {/* CITY */}
           <div className="form-group">
-            <label>City</label>
+            <label htmlFor="city-select">City</label>
             <select
+              id="city-select"
               value={city}
-              onChange={e => setCity(e.target.value)}
+              onChange={(e) => {
+                setCity(e.target.value);
+                setCityError("");
+              }}
               disabled={loadingCities}
+              aria-busy={loadingCities}
             >
               <option value="">
                 {loadingCities ? "Loading cities..." : "Select city"}
               </option>
               {cities.map((c, i) => (
-                <option key={i} value={c}>{c}</option>
+                <option key={i} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
+            {cityError && <small className="form-error">{cityError}</small>}
           </div>
 
           {/* LOCATION TYPE */}
           <div className="form-group">
-            <label>Location Type</label>
+            <label htmlFor="type-select">Location Type</label>
             <select
+              id="type-select"
               value={locationType}
-              onChange={e => setLocationType(e.target.value)}
+              onChange={(e) => setLocationType(e.target.value)}
               disabled={!city || loadingLocationTypes}
+              aria-busy={loadingLocationTypes}
             >
               <option value="">
-                {loadingLocationTypes ? "Loading..." : "Select location type"}
+                {loadingLocationTypes
+                  ? "Loading..."
+                  : city
+                  ? "Select location type"
+                  : "Choose city first"}
               </option>
               {locationTypes.map((l, i) => (
-                <option key={i} value={l}>{l}</option>
+                <option key={i} value={l}>
+                  {l}
+                </option>
               ))}
             </select>
           </div>
 
           {/* PLACE */}
           <div className="form-group">
-            <label>Place</label>
+            <label htmlFor="place-select">Place (Optional)</label>
             <select
+              id="place-select"
               value={place}
-              onChange={e => setPlace(e.target.value)}
+              onChange={(e) => setPlace(e.target.value)}
               disabled={!city || !locationType || loadingPlaces}
+              aria-busy={loadingPlaces}
             >
               <option value="">
                 {loadingPlaces
                   ? "Loading places..."
                   : places.length === 0
                   ? "No places found"
-                  : "Select place"}
+                  : "Select place (optional)"}
               </option>
               {places.map((p, i) => (
-                <option key={i} value={p}>{p}</option>
+                <option key={i} value={p}>
+                  {p}
+                </option>
               ))}
             </select>
           </div>
@@ -198,9 +277,17 @@ export default function InputSection({ onPredict, detectedCity }) {
         <button
           className="predict-btn"
           onClick={handlePredict}
-          disabled={!city || !locationType}
+          disabled={!city || !locationType || predictLoading}
+          aria-busy={predictLoading}
         >
-          Predict Crowd Level
+          {predictLoading ? (
+            <>
+              <span className="spinner"></span>
+              Predicting...
+            </>
+          ) : (
+            "Predict Crowd Level"
+          )}
         </button>
       </div>
     </section>

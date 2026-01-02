@@ -1,32 +1,18 @@
 import { useState } from "react";
 import "./LiveLocationSection.css";
 import { API_BASE_URL } from "../services/api";
+import { predictCrowdFromPlaces } from "../utils/staticCrowdLogic";
 
 export default function LiveLocationSection() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const [area, setArea] = useState("");
   const [places, setPlaces] = useState([]);
-  const [crowdNow, setCrowdNow] = useState("");
-  const [crowdLater, setCrowdLater] = useState("");
-
-  /* ===============================
-     SIMPLE CROWD LOGIC (REALISTIC)
-  =============================== */
-  const getCrowdLevel = (hour) => {
-    if ((hour >= 8 && hour <= 10) || (hour >= 17 && hour <= 20)) {
-      return "High";
-    }
-    if (hour >= 11 && hour <= 16) {
-      return "Medium";
-    }
-    return "Low";
-  };
+  const [crowdLevel, setCrowdLevel] = useState("");
 
   const handleLiveLocation = () => {
     if (!navigator.geolocation) {
-      setError("Geolocation is not supported on this device");
+      setError("Location services are not available on your device.");
       return;
     }
 
@@ -34,158 +20,151 @@ export default function LiveLocationSection() {
     setError("");
     setArea("");
     setPlaces([]);
-    setCrowdNow("");
-    setCrowdLater("");
+    setCrowdLevel("");
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
 
-          /* ===============================
-             1️⃣ REVERSE GEOCODE (AREA FIRST)
-          =============================== */
+          /* STEP 1: Get Area Name */
           const geoRes = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-            {
-              headers: {
-                "User-Agent": "crowd-prediction-app"
-              }
-            }
+            { headers: { "User-Agent": "crowd-prediction-app" } }
           );
-
-          if (!geoRes.ok) throw new Error("Geo failed");
-
           const geo = await geoRes.json();
 
-          const detectedArea =
+          const areaName =
             geo.address?.suburb ||
             geo.address?.neighbourhood ||
-            geo.address?.city_district ||
             geo.address?.city ||
-            geo.address?.town ||
-            geo.address?.village ||
-            "Nearby Area";
+            "Current Area";
 
-          setArea(detectedArea);
+          setArea(areaName);
 
-          /* ===============================
-             2️⃣ NEARBY PLACES (BACKEND)
-          =============================== */
-          const placeRes = await fetch(
-            `${API_BASE_URL}/api/location/nearby`,
-            {
+          /* STEP 2: Fetch Nearby Places */
+          let nearbyPlaces = [];
+          try {
+            const res = await fetch(`${API_BASE_URL}/api/location/nearby`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                lat: latitude,
-                lng: longitude
-              })
+              body: JSON.stringify({ lat: latitude, lng: longitude })
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              nearbyPlaces = Array.isArray(data.nearbyPlaces)
+                ? data.nearbyPlaces.slice(0, 6)
+                : [];
             }
-          );
+          } catch (err) {
+            console.error("Nearby places fetch failed:", err);
+          }
 
-          if (!placeRes.ok) throw new Error("Places failed");
-
-          const placeData = await placeRes.json();
-
-          setPlaces(
-            Array.isArray(placeData.nearbyPlaces)
-              ? placeData.nearbyPlaces.slice(0, 4)
-              : []
-          );
-
-          /* ===============================
-             3️⃣ CROWD PREDICTION
-          =============================== */
-          const nowHour = new Date().getHours();
-          setCrowdNow(getCrowdLevel(nowHour));
-          setCrowdLater(getCrowdLevel((nowHour + 1) % 24));
-
+          setPlaces(nearbyPlaces);
         } catch (err) {
-          console.error(err);
-          setError("Unable to detect nearby data");
+          setError(
+            "Location detected, but unable to fetch nearby places. Please try again."
+          );
+          console.error("Location error:", err);
         } finally {
           setLoading(false);
         }
       },
       () => {
-        setError("Location permission denied");
+        setError("Location permission denied. Enable location access to continue.");
         setLoading(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
       }
     );
   };
 
+  const handlePredictCrowd = () => {
+    if (places.length === 0) return;
+    const level = predictCrowdFromPlaces(places);
+    setCrowdLevel(level);
+  };
+
   return (
     <section className="live-section">
-      <div className="live-layout">
-
-        {/* 🔵 LEFT – PROCESS */}
-        <div className="live-left">
-          <h2>Live Location Detection</h2>
-
-          <ol className="live-steps">
-            <li className={area ? "done" : ""}>Detecting area</li>
-            <li className={places.length ? "done" : ""}>Finding nearby places</li>
-            <li className={crowdNow ? "done" : ""}>Predicting crowd</li>
-          </ol>
-
-          <button
-            className="live-btn"
-            onClick={handleLiveLocation}
-            disabled={loading}
-          >
-            {loading ? "Detecting..." : "📍 Detect My Location"}
-          </button>
-
-          {error && <p className="live-error">{error}</p>}
+      <div className="live-card">
+        {/* HEADER */}
+        <div className="card-header">
+          <h2>Live Crowd Prediction</h2>
+          <p className="subtitle">
+            Detect your location and predict crowd levels at nearby public places
+          </p>
         </div>
 
-        {/* 🟢 RIGHT – RESULT */}
-        <div className="live-right">
-          {!area && !loading && (
-            <p className="hint">Results will appear here</p>
-          )}
-
-          {area && (
+        {/* LOCATION DETECTION */}
+        <button
+          className="live-btn"
+          onClick={handleLiveLocation}
+          disabled={loading}
+          aria-busy={loading}
+        >
+          {loading ? (
             <>
-              <h3>📍 {area}</h3>
-
-              <div className="places-box">
-                <h4>Nearby Places</h4>
-                {places.length > 0 ? (
-                  <ul>
-                    {places.map((p, i) => (
-                      <li key={`${p}-${i}`}>{p}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="hint">No nearby places found</p>
-                )}
-              </div>
-
-              <div className="crowd-box">
-                <p>
-                  <strong>Now:</strong>
-                  <span className={`crowd ${crowdNow.toLowerCase()}`}>
-                    {" "}{crowdNow}
-                  </span>
-                </p>
-                <p>
-                  <strong>After 1 hour:</strong>
-                  <span className={`crowd ${crowdLater.toLowerCase()}`}>
-                    {" "}{crowdLater}
-                  </span>
-                </p>
-              </div>
+              <span className="spinner"></span>
+              Detecting location...
             </>
+          ) : (
+            "Detect My Location"
           )}
-        </div>
+        </button>
 
+        {error && (
+          <div className="error-box" role="alert">
+            <span className="error-icon">!</span>
+            <p className="error-text">{error}</p>
+          </div>
+        )}
+
+        {/* DETECTED AREA */}
+        {area && (
+          <div className="results-section">
+            {/* Area Box */}
+            <div className="area-box">
+              <span className="label">Detected Area</span>
+              <h3 className="area-name">{area}</h3>
+            </div>
+
+            {/* Places Box */}
+            <div className="places-box">
+              <span className="label">Nearby Public Places</span>
+
+              {places.length > 0 ? (
+                <div className="places-grid">
+                  {places.map((place, idx) => (
+                    <div key={idx} className="place-card">
+                      <span className="place-name">{place}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <p className="hint">No public places detected nearby</p>
+                </div>
+              )}
+            </div>
+
+            {/* Predict Button */}
+            <button
+              className="predict-btn"
+              onClick={handlePredictCrowd}
+              disabled={places.length === 0}
+            >
+              Predict Crowd Level
+            </button>
+
+            {/* Crowd Result */}
+            {crowdLevel && (
+              <div className={`crowd-result crowd-result--${crowdLevel.toLowerCase()}`}>
+                <span className="result-label">Estimated Crowd Level</span>
+                <span className="result-value">{crowdLevel}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

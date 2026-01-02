@@ -1,0 +1,175 @@
+/* ========================================
+   CROWD HISTORY PAGE
+======================================== */
+
+.history-header {
+  margin-bottom: 24px;
+}
+
+.history-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.history-header p {
+  font-size: 0.95rem;
+  color: #64748b;
+}
+
+/* ========================================
+   EMPTY STATE
+======================================== */
+
+.history-empty {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.history-empty p {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.history-empty span {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* ========================================
+   HISTORY LIST
+======================================== */
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* History card */
+.history-item {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  border-left: 4px solid #d32f2f;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.history-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* Left section */
+.history-left h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.history-time {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Right section */
+.history-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Crowd level badge */
+.history-level {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Level colors */
+.history-level.high {
+  background: rgba(211, 47, 47, 0.15);
+  color: #d32f2f;
+}
+
+.history-level.medium {
+  background: rgba(245, 158, 11, 0.2);
+  color: #b45309;
+}
+
+.history-level.low {
+  background: rgba(16, 185, 129, 0.2);
+  color: #047857;
+}
+
+/* Percentage */
+.history-percent {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 600px) {
+  .history-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .history-right {
+    align-self: flex-end;
+  }
+}
+
+
+/* ========================================
+   CLEAR HISTORY BUTTON
+======================================== */
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.clear-history-btn {
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  color: #d32f2f;
+  background: transparent;
+  border: 1px solid #d32f2f;
+  border-radius: 8px;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-history-btn:hover {
+  background: #d32f2f;
+  color: #ffffff;
+}

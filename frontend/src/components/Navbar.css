@@ -1,45 +1,131 @@
+/* ========================================
+   NAVBAR (FIXED & PROFESSIONAL)
+======================================== */
+
 .navbar {
   position: fixed;
   top: 0;
-  width: 100%;
+  left: 0;
   height: 64px;
+  width: 100%;
   background: #ffffff;
-  border-bottom: 2px solid #d32f2f;
-  z-index: 1000;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 1100;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
+/* Content wrapper */
 .nav-box {
-  max-width: 1200px;
   height: 100%;
-  margin: auto;
-  padding: 0 20px;
+  margin-left: 72px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
 }
 
 /* Logo */
 .logo {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #1f2933;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .logo span {
-  color: #d32f2f;
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
 }
 
-/* Small image badge */
+/* Badge */
 .nav-badge {
   height: 40px;
   width: 120px;
+  border-radius: 10px;
   overflow: hidden;
-  border-radius: 6px;
+  background: linear-gradient(135deg, #f1f5f9, #f9fafb);
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.nav-badge:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  border-color: #d1d5db;
 }
 
 .nav-badge img {
   height: 100%;
   width: 100%;
-  object-fit: cover;   /* 🔥 IMPORTANT */
-  opacity: 0.9;
+  object-fit: cover;
+  opacity: 0.95;
+}
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 900px) {
+  .navbar {
+    height: 60px;
+  }
+
+  .nav-box {
+    margin-left: 0;
+    padding: 0 16px;
+  }
+
+  .logo {
+    font-size: 1.25rem;
+  }
+
+  .nav-badge {
+    width: 100px;
+    height: 36px;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    height: 56px;
+  }
+
+  .nav-box {
+    padding: 0 14px;
+    gap: 12px;
+  }
+
+  .logo {
+    font-size: 1.15rem;
+  }
+
+  .nav-badge {
+    width: 88px;
+    height: 32px;
+    border-radius: 8px;
+  }
+}
+
+/* ACCESSIBILITY */
+@media (prefers-reduced-motion: reduce) {
+  .nav-badge {
+    transition: none;
+  }
+
+  .nav-badge:hover {
+    transform: none;
+  }
 }
