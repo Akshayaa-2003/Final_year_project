@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  "https://crowd-prediction-website-01.onrender.com";
+  "https://crowd-prediction-website-1.onrender.com";
 
 export const predictCrowd = async (payload) => {
   const response = await fetch(`${API_BASE_URL}/api/predict`, {
