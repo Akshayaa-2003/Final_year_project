@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Signup.css";
 
-// ✅ Use env variable (local / prod safe)
+// ✅ Vite env (local + prod safe)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Signup() {
@@ -17,7 +17,14 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ Basic validation
+    // 🔒 Guard: env missing
+    if (!API_BASE_URL) {
+      alert("API not configured. Contact admin.");
+      console.error("VITE_API_BASE_URL is missing");
+      return;
+    }
+
+    // ✅ Validation
     if (!name || !email || !password || !confirmPassword) {
       alert("Please fill all fields");
       return;
@@ -32,22 +39,29 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          password,
-        }),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/api/auth/signup`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: name.trim(),
+            email: email.trim(),
+            password,
+          }),
+        }
+      );
 
-      const data = await response.json();
+      // ✅ Prevent JSON crash
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error("Invalid server response");
+      }
 
       if (!response.ok || !data.success) {
-        alert(data.message || "Signup failed");
+        alert(data?.message || "Signup failed");
         return;
       }
 

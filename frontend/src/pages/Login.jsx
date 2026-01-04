@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-// ✅ Use env variable (LOCAL / PROD safe)
+// ✅ Vite env
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Login() {
@@ -15,6 +15,12 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!API_BASE_URL) {
+      alert("API not configured. Contact admin.");
+      console.error("VITE_API_BASE_URL is missing");
+      return;
+    }
+
     if (!email || !password) {
       alert("Please fill all fields");
       return;
@@ -24,21 +30,28 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-        }),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim(),
+            password,
+          }),
+        }
+      );
 
-      const data = await response.json();
+      // ✅ Prevent JSON crash
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error("Invalid server response");
+      }
 
       if (!response.ok || !data.success) {
-        alert(data.message || "Login failed");
+        alert(data?.message || "Login failed");
         return;
       }
 
