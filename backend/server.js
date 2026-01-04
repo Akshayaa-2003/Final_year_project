@@ -1,127 +1,85 @@
 import express from "express";
 import dotenv from "dotenv";
 
+import connectDB from "./config/db.js";
+import authRoutes from "./routes/auth.js";
 import placesRoutes from "./routes/places.js";
 import predictRoutes from "./routes/predict.js";
 import locationRoutes from "./routes/location.js";
 
 dotenv.config();
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-/* ===============================
-   CORS MIDDLEWARE
-================================ */
+/* ---------- MIDDLEWARE ---------- */
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, DELETE"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
 
-  // Handle preflight requests
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-
+  if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
 
-/* ===============================
-   BODY PARSERS
-================================ */
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-/* ===============================
-   REQUEST LOGGING MIDDLEWARE
-================================ */
 app.use((req, res, next) => {
   console.log(`📍 ${req.method} ${req.path}`);
   next();
 });
 
-/* ===============================
-   HEALTH CHECK
-================================ */
+/* ---------- HEALTH ---------- */
 app.get("/", (req, res) => {
-  res.status(200).json({
+  res.json({
     status: "ok",
     message: "Crowd Prediction Backend Running",
-    version: "1.0.0",
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
 app.get("/health", (req, res) => {
-  res.status(200).json({
+  res.json({
     status: "healthy",
     uptime: process.uptime(),
-    timestamp: new Date().toISOString()
   });
 });
 
-/* ===============================
-   API ROUTES
-================================ */
+/* ---------- ROUTES ---------- */
+app.use("/api/auth", authRoutes);
 app.use("/api/places", placesRoutes);
 app.use("/api/predict", predictRoutes);
 app.use("/api/location", locationRoutes);
 
-/* ===============================
-   ERROR HANDLING - 404
-================================ */
+/* ---------- ERRORS ---------- */
 app.use((req, res) => {
-  console.warn(`⚠️ 404 Not Found: ${req.method} ${req.path}`);
   res.status(404).json({
     error: "Route not found",
     path: req.path,
-    method: req.method,
-    availableRoutes: [
-      "GET /",
-      "GET /health",
-      "GET /api/places/cities",
-      "GET /api/places/location-types",
-      "GET /api/places",
-      "POST /api/predict",
-      "POST /api/location/nearby"
-    ]
   });
 });
 
-/* ===============================
-   ERROR HANDLING - GLOBAL
-================================ */
 app.use((err, req, res, next) => {
   console.error("❌ Server error:", err.message);
-
-  res.status(err.status || 500).json({
-    error: err.message || "Internal Server Error",
-    path: req.path,
-    method: req.method
+  res.status(500).json({
+    error: "Internal Server Error",
   });
 });
 
-/* ===============================
-   START SERVER
-================================ */
+/* ---------- START ---------- */
 app.listen(PORT, () => {
-  console.log(`\n🚀 Server is running!`);
-  console.log(`📍 Port: ${PORT}`);
-  console.log(`🌍 URL: http://localhost:${PORT}`);
-  console.log(`✅ API Base: http://localhost:${PORT}/api\n`);
-
-  console.log("Available endpoints:");
-  console.log("  GET  /                    - Health check");
-  console.log("  GET  /api/places/cities    - Get all cities");
-  console.log("  GET  /api/places/location-types - Get location types");
-  console.log("  GET  /api/places           - Get places by city & type");
-  console.log("  POST /api/predict          - Predict crowd level");
-  console.log("  POST /api/location/nearby  - Get nearby places\n");
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
 
-/* ===============================
-   HANDLE UNHANDLED REJECTIONS
-================================ */
+/* ---------- PROCESS SAFETY ---------- */
 process.on("unhandledRejection", (err) => {
   console.error("❌ Unhandled Rejection:", err);
   process.exit(1);

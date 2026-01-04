@@ -1,0 +1,176 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+
+
+/* ================================
+   LOGIN PAGE – FULL SCREEN FIX
+================================ */
+.auth-page {
+  min-height: 100vh;
+  width: 100vw;
+
+  display: flex;
+  align-items: center;        /* ✅ vertical center */
+  justify-content: center;    /* ✅ horizontal center */
+
+  overflow: hidden;           /* ✅ remove white overflow */
+
+  background:
+    linear-gradient(
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.2)
+    ),
+    url("/pglogin/login.png");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+
+/* INNER HIGHLIGHT */
+.auth-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* ================================
+   CARD CONTENT
+================================ */
+.auth-card {
+  padding: 42px 44px;   /* 🔽 slightly reduced */
+}
+
+.auth-card h2 {
+  color: #e10600;
+  text-align: center;
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 26px;
+}
+
+/* ================================
+   INPUTS
+================================ */
+.input-group {
+  margin-bottom: 18px;
+}
+
+.input-group label {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 7px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background: #fff;
+}
+
+.input-group input:focus {
+  border-color: #e10600;
+  outline: none;
+}
+
+/* ================================
+   PASSWORD (EYE FIXED)
+================================ */
+.password-group {
+  position: relative;
+}
+
+.eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;                /* ✅ perfect vertical center */
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #666;
+}
+
+.eye:hover {
+  color: #e10600;
+}
+
+/* ================================
+   BUTTON (IMPROVED ONLY)
+================================ */
+.auth-btn {
+  width: 100%;
+  padding: 14px;                 /* 🔼 better touch feel */
+  background: linear-gradient(135deg, #e10600, #b80000);
+  color: #fff;
+  border: none;
+  border-radius: 8px;            /* 🔼 smoother */
+  font-weight: 600;
+  font-size: 15px;               /* 🔼 clearer text */
+  cursor: pointer;
+  margin-top: 14px;              /* 🔼 better spacing */
+  transition: all 0.25s ease;
+}
+
+.auth-btn:hover {
+  transform: translateY(-2px);   /* 🔼 smoother hover */
+  box-shadow: 0 10px 22px rgba(225, 6, 0, 0.35);
+}
+
+.auth-btn:active {
+  transform: translateY(0);      /* 🔼 click feedback */
+  box-shadow: 0 6px 14px rgba(225, 6, 0, 0.3);
+}
+
+.auth-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(225, 6, 0, 0.25);
+}
+
+
+/* ================================
+   SWITCH TEXT
+================================ */
+.switch-text {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.switch-text span {
+  color: #e10600;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+
+/* ================================
+   MOBILE
+================================ */
+@media (max-width: 768px) {
+  .auth-container {
+    width: 100%;
+  }
+
+  .auth-card {
+    padding: 28px 22px;   /* 🔽 cleaner mobile */
+  }
+}
+
+

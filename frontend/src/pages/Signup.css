@@ -1,0 +1,145 @@
+/* ================================
+   SIGNUP PAGE BACKGROUND (SCOPED)
+================================ */
+.signup-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+
+  background:
+    linear-gradient(
+      rgba(255, 255, 255, 0.22),  /* 🔽 clearer bg */
+      rgba(255, 255, 255, 0.22)
+    ),
+    url("/pglogin/sign.png");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ================================
+   CONTAINER – PORTRAIT CARD
+================================ */
+.auth-container {
+  width: 460px;
+  position: relative;
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+
+  box-shadow:
+    0 28px 60px rgba(0, 0, 0, 0.22),
+    0 10px 22px rgba(0, 0, 0, 0.12);
+}
+
+/* INNER HIGHLIGHT */
+.auth-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* ================================
+   CARD CONTENT
+================================ */
+.auth-card {
+  padding: 42px 36px;
+}
+
+.auth-card h2 {
+  color: #e10600;
+  text-align: center;
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 26px;
+}
+
+/* ================================
+   INPUTS
+================================ */
+.input-group {
+  margin-bottom: 18px;
+}
+
+.input-group label {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 7px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background: #fff;
+}
+
+.input-group input:focus {
+  border-color: #e10600;
+  outline: none;
+}
+
+/* ================================
+   BUTTON
+================================ */
+.auth-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #e10600, #b80000);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.auth-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(225, 6, 0, 0.35);
+}
+
+/* ================================
+   SWITCH TEXT
+================================ */
+.switch-text {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.switch-text span {
+  color: #e10600;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ================================
+   MOBILE
+================================ */
+@media (max-width: 480px) {
+  .auth-container {
+    width: 100%;
+  }
+
+  .auth-card {
+    padding: 28px 22px;
+  }
+}

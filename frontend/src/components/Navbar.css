@@ -119,6 +119,28 @@
   }
 }
 
+/* LOGOUT BUTTON */
+.logout-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #e10600, #b80000);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  box-shadow: 0 6px 16px rgba(225, 6, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}
+
 /* ACCESSIBILITY */
 @media (prefers-reduced-motion: reduce) {
   .nav-badge {

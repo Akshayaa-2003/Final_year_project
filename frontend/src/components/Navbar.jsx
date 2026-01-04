@@ -1,16 +1,24 @@
-import "./Navbar.css";
+import { useNavigate } from "react-router-dom";
+import "./Navbar.css"; // ✅ FIXED
 
 export default function Navbar() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // ✅ clear token
+    navigate("/login", { replace: true });
+  };
+
   return (
     <nav className="navbar">
       <div className="nav-box">
-        <h2 className="logo">
-          Crowd<span>Predict</span>
-        </h2>
-
-        <div className="nav-badge">
-          <img src="/navbar-bg.png" alt="Crowd visual" />
+        <div className="logo">
+          Crowd <span>Prediction</span>
         </div>
+
+        <button onClick={handleLogout} className="logout-btn">
+          Logout
+        </button>
       </div>
     </nav>
   );
