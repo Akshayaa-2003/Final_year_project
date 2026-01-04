@@ -1,9 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 
-/* ===============================
-   SIGNUP
-================================ */
+/* -------- SIGNUP -------- */
 export const signupUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -11,12 +9,12 @@ export const signupUser = async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required",
+        message: "All fields required",
       });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    const exists = await User.findOne({ email });
+    if (exists) {
       return res.status(400).json({
         success: false,
         message: "Email already exists",
@@ -39,28 +37,20 @@ export const signupUser = async (req, res) => {
         email: user.email,
       },
     });
+
   } catch (err) {
     console.error("SIGNUP ERROR:", err);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: "Signup server error",
+      message: "Signup failed",
     });
   }
 };
 
-/* ===============================
-   LOGIN
-================================ */
+/* -------- LOGIN -------- */
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
-    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -70,15 +60,15 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
       return res.status(400).json({
         success: false,
-        message: "Invalid password",
+        message: "Wrong password",
       });
     }
 
-    return res.status(200).json({
+    res.json({
       success: true,
       message: "Login successful",
       user: {
@@ -86,11 +76,12 @@ export const loginUser = async (req, res) => {
         email: user.email,
       },
     });
+
   } catch (err) {
     console.error("LOGIN ERROR:", err);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: "Login server error",
+      message: "Login failed",
     });
   }
 };

@@ -16,6 +16,7 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // ✅ Basic validation
     if (!name || !email || !password || !confirmPassword) {
       alert("Please fill all fields");
       return;
@@ -26,6 +27,7 @@ export default function Signup() {
       return;
     }
 
+    if (loading) return; // prevent double submit
     setLoading(true);
 
     try {
@@ -43,18 +45,22 @@ export default function Signup() {
 
       const data = await response.json();
 
+      // ❌ Backend error
       if (!response.ok) {
         alert(data.message || "Signup failed");
         return;
       }
 
+      // ❌ Logical failure
       if (!data.success) {
         alert(data.message || "Signup failed");
         return;
       }
 
+      // ✅ SUCCESS
       localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/", { replace: true });
+
     } catch (err) {
       console.error("SIGNUP FETCH ERROR:", err);
       alert("Unable to connect to server");
@@ -76,9 +82,9 @@ export default function Signup() {
                 <label>Name</label>
                 <input
                   type="text"
+                  placeholder="Your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
                   required
                 />
               </div>
@@ -87,9 +93,9 @@ export default function Signup() {
                 <label>Email</label>
                 <input
                   type="email"
+                  placeholder="Your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Your email"
                   required
                 />
               </div>
@@ -100,9 +106,9 @@ export default function Signup() {
                 <label>Password</label>
                 <input
                   type="password"
+                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
                   required
                 />
               </div>
@@ -111,9 +117,11 @@ export default function Signup() {
                 <label>Confirm Password</label>
                 <input
                   type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm password"
+                  value={confirmPassword}
+                  onChange={(e) =>
+                    setConfirmPassword(e.target.value)
+                  }
                   required
                 />
               </div>
@@ -130,7 +138,9 @@ export default function Signup() {
 
           <p className="switch-text">
             Already have an account?{" "}
-            <span onClick={() => navigate("/login")}>Login</span>
+            <span onClick={() => navigate("/login")}>
+              Login
+            </span>
           </p>
         </div>
       </div>

@@ -14,11 +14,13 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // ✅ Basic validation
     if (!email || !password) {
       alert("Please fill all fields");
       return;
     }
 
+    if (loading) return; // prevent double submit
     setLoading(true);
 
     try {
@@ -35,18 +37,22 @@ export default function Login() {
 
       const data = await response.json();
 
+      // ❌ Backend error
       if (!response.ok) {
         alert(data.message || "Login failed");
         return;
       }
 
+      // ❌ Logical failure
       if (!data.success) {
         alert(data.message || "Invalid login");
         return;
       }
 
+      // ✅ SUCCESS
       localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/", { replace: true });
+
     } catch (err) {
       console.error("LOGIN FETCH ERROR:", err);
       alert("Unable to connect to server");
@@ -67,9 +73,9 @@ export default function Login() {
               <label>Email</label>
               <input
                 type="email"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
                 required
               />
             </div>
@@ -78,21 +84,27 @@ export default function Login() {
               <label>Password</label>
               <input
                 type="password"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
                 required
               />
             </div>
 
-            <button className="auth-btn" disabled={loading}>
+            <button
+              type="submit"
+              className="auth-btn"
+              disabled={loading}
+            >
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 
           <p className="switch-text">
             Don’t have an account?{" "}
-            <span onClick={() => navigate("/signup")}>Sign up</span>
+            <span onClick={() => navigate("/signup")}>
+              Sign up
+            </span>
           </p>
         </div>
       </div>
