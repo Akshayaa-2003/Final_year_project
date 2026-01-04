@@ -153,6 +153,17 @@
   z-index: 850;
 }
 
+.sidebar-nav button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
 /* ========================================
    MOBILE BEHAVIOR
 ======================================== */

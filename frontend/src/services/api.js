@@ -1,6 +1,6 @@
-export const API_BASE_URL =
-  "https://crowd-prediction-website-1.onrender.com";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// 🔮 PREDICT API
 export const predictCrowd = async (payload) => {
   const response = await fetch(`${API_BASE_URL}/api/predict`, {
     method: "POST",
@@ -10,9 +10,11 @@ export const predictCrowd = async (payload) => {
     body: JSON.stringify(payload),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    throw new Error("Prediction failed");
+    throw new Error(data.message || "Prediction failed");
   }
 
-  return response.json();
+  return data;
 };

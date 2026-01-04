@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Signup.css";
 
-const API_BASE_URL = "https://crowd-prediction-website-01.onrender.com";
+// ✅ Use env variable (local / prod safe)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function Signup() {
       return;
     }
 
-    if (loading) return; // prevent double submit
+    if (loading) return;
     setLoading(true);
 
     try {
@@ -45,25 +46,18 @@ export default function Signup() {
 
       const data = await response.json();
 
-      // ❌ Backend error
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         alert(data.message || "Signup failed");
         return;
       }
 
-      // ❌ Logical failure
-      if (!data.success) {
-        alert(data.message || "Signup failed");
-        return;
-      }
-
-      // ✅ SUCCESS
+      // ✅ Save user
       localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/", { replace: true });
 
-    } catch (err) {
-      console.error("SIGNUP FETCH ERROR:", err);
-      alert("Unable to connect to server");
+    } catch (error) {
+      console.error("SIGNUP ERROR:", error);
+      alert("Server not reachable");
     } finally {
       setLoading(false);
     }

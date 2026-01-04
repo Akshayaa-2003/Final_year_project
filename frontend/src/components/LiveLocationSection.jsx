@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./LiveLocationSection.css";
-import { API_BASE_URL } from "../services/api";
+import { STATIC_PLACES } from "../utils/staticPlaces";
 import { predictCrowdFromPlaces } from "../utils/staticCrowdLogic";
 
 export default function LiveLocationSection() {
@@ -12,7 +12,7 @@ export default function LiveLocationSection() {
 
   const handleLiveLocation = () => {
     if (!navigator.geolocation) {
-      setError("Location services are not available on your device.");
+      setError("Location services are not supported");
       return;
     }
 
@@ -27,59 +27,42 @@ export default function LiveLocationSection() {
         try {
           const { latitude, longitude } = pos.coords;
 
-          /* STEP 1: Get Area Name */
-          const geoRes = await fetch(
+          // 🔹 GET AREA NAME (OPENSTREETMAP)
+          const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
             { headers: { "User-Agent": "crowd-prediction-app" } }
           );
-          const geo = await geoRes.json();
 
+          const data = await res.json();
           const areaName =
-            geo.address?.suburb ||
-            geo.address?.neighbourhood ||
-            geo.address?.city ||
-            "Current Area";
+            data.address?.suburb ||
+            data.address?.city ||
+            data.address?.town ||
+            "Your Area";
 
           setArea(areaName);
 
-          /* STEP 2: Fetch Nearby Places */
-          let nearbyPlaces = [];
-          try {
-            const res = await fetch(`${API_BASE_URL}/api/location/nearby`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ lat: latitude, lng: longitude })
-            });
-
-            if (res.ok) {
-              const data = await res.json();
-              nearbyPlaces = Array.isArray(data.nearbyPlaces)
-                ? data.nearbyPlaces.slice(0, 6)
-                : [];
-            }
-          } catch (err) {
-            console.error("Nearby places fetch failed:", err);
-          }
-
-          setPlaces(nearbyPlaces);
-        } catch (err) {
-          setError(
-            "Location detected, but unable to fetch nearby places. Please try again."
+          // 🔹 STATIC PLACES (DEMO PURPOSE)
+          const demoPlaces = STATIC_PLACES.slice(
+            0,
+            Math.floor(Math.random() * STATIC_PLACES.length) + 2
           );
-          console.error("Location error:", err);
+
+          setPlaces(demoPlaces);
+        } catch (err) {
+          setError("Unable to detect area. Please try again.");
         } finally {
           setLoading(false);
         }
       },
       () => {
-        setError("Location permission denied. Enable location access to continue.");
+        setError("Location permission denied");
         setLoading(false);
       }
     );
   };
 
   const handlePredictCrowd = () => {
-    if (places.length === 0) return;
     const level = predictCrowdFromPlaces(places);
     setCrowdLevel(level);
   };
@@ -87,80 +70,52 @@ export default function LiveLocationSection() {
   return (
     <section className="live-section">
       <div className="live-card">
-        {/* HEADER */}
         <div className="card-header">
           <h2>Live Crowd Prediction</h2>
           <p className="subtitle">
-            Detect your location and predict crowd levels at nearby public places
+            Detect your location and estimate crowd level nearby
           </p>
         </div>
 
-        {/* LOCATION DETECTION */}
         <button
           className="live-btn"
           onClick={handleLiveLocation}
           disabled={loading}
-          aria-busy={loading}
         >
-          {loading ? (
-            <>
-              <span className="spinner"></span>
-              Detecting location...
-            </>
-          ) : (
-            "Detect My Location"
-          )}
+          {loading ? "Detecting..." : "Detect My Location"}
         </button>
 
-        {error && (
-          <div className="error-box" role="alert">
-            <span className="error-icon">!</span>
-            <p className="error-text">{error}</p>
-          </div>
-        )}
+        {error && <div className="error-box">{error}</div>}
 
-        {/* DETECTED AREA */}
         {area && (
           <div className="results-section">
-            {/* Area Box */}
             <div className="area-box">
               <span className="label">Detected Area</span>
-              <h3 className="area-name">{area}</h3>
+              <h3>{area}</h3>
             </div>
 
-            {/* Places Box */}
             <div className="places-box">
               <span className="label">Nearby Public Places</span>
-
-              {places.length > 0 ? (
-                <div className="places-grid">
-                  {places.map((place, idx) => (
-                    <div key={idx} className="place-card">
-                      <span className="place-name">{place}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty-state">
-                  <p className="hint">No public places detected nearby</p>
-                </div>
-              )}
+              <div className="places-grid">
+                {places.map((p, i) => (
+                  <div key={i} className="place-card">
+                    {p}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Predict Button */}
             <button
               className="predict-btn"
               onClick={handlePredictCrowd}
-              disabled={places.length === 0}
             >
               Predict Crowd Level
             </button>
 
-            {/* Crowd Result */}
             {crowdLevel && (
-              <div className={`crowd-result crowd-result--${crowdLevel.toLowerCase()}`}>
-                <span className="result-label">Estimated Crowd Level</span>
-                <span className="result-value">{crowdLevel}</span>
+              <div className={`crowd-result ${crowdLevel.toLowerCase()}`}>
+                <span>Estimated Crowd Level</span>
+                <strong>{crowdLevel}</strong>
               </div>
             )}
           </div>

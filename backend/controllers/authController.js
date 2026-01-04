@@ -1,23 +1,25 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 
-/* -------- SIGNUP -------- */
-export const signupUser = async (req, res) => {
+/* ===============================
+   SIGNUP
+================================ */
+export const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "All fields required",
+        message: "All fields are required",
       });
     }
 
-    const exists = await User.findOne({ email });
-    if (exists) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "Email already exists",
+        message: "User already exists",
       });
     }
 
@@ -29,17 +31,17 @@ export const signupUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: "Signup successful",
       user: {
+        id: user._id,
         name: user.name,
         email: user.email,
       },
     });
-
-  } catch (err) {
-    console.error("SIGNUP ERROR:", err);
+  } catch (error) {
+    console.error("Signup error:", error.message);
     res.status(500).json({
       success: false,
       message: "Signup failed",
@@ -47,10 +49,19 @@ export const signupUser = async (req, res) => {
   }
 };
 
-/* -------- LOGIN -------- */
-export const loginUser = async (req, res) => {
+/* ===============================
+   LOGIN
+================================ */
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -60,11 +71,11 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "Wrong password",
+        message: "Invalid password",
       });
     }
 
@@ -72,13 +83,13 @@ export const loginUser = async (req, res) => {
       success: true,
       message: "Login successful",
       user: {
+        id: user._id,
         name: user.name,
         email: user.email,
       },
     });
-
-  } catch (err) {
-    console.error("LOGIN ERROR:", err);
+  } catch (error) {
+    console.error("Login error:", error.message);
     res.status(500).json({
       success: false,
       message: "Login failed",

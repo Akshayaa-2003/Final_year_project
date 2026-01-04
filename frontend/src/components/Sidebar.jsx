@@ -1,4 +1,12 @@
 import { useState, useEffect } from "react";
+import {
+  FiHome,
+  FiMapPin,
+  FiBarChart2,
+  FiTruck,
+  FiClock,
+  FiMenu
+} from "react-icons/fi";
 import "./Sidebar.css";
 
 export default function Sidebar() {
@@ -10,8 +18,6 @@ export default function Sidebar() {
     const handleResize = () => {
       const mobile = window.innerWidth <= 900;
       setIsMobile(mobile);
-
-      // Reset sidebar state when switching modes
       if (!mobile) setOpen(false);
     };
 
@@ -20,14 +26,10 @@ export default function Sidebar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Safe scroll helper
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
     if (!el) return;
-
     el.scrollIntoView({ behavior: "smooth" });
-
-    // Close sidebar after click on mobile
     if (isMobile) setOpen(false);
   };
 
@@ -40,7 +42,7 @@ export default function Sidebar() {
           onClick={() => setOpen(true)}
           aria-label="Open sidebar"
         >
-          ☰
+          <FiMenu size={22} />
         </button>
       )}
 
@@ -64,15 +66,28 @@ export default function Sidebar() {
 
         <nav className="sidebar-nav">
           <button onClick={() => scrollToSection("home")}>
-            Home
+            <FiHome className="nav-icon" />
+            <span>Home</span>
           </button>
 
           <button onClick={() => scrollToSection("live-crowd")}>
-            Live Crowd
+            <FiMapPin className="nav-icon" />
+            <span>Live Crowd</span>
+          </button>
+
+          <button onClick={() => scrollToSection("predict")}>
+            <FiBarChart2 className="nav-icon" />
+            <span>Predict Crowd</span>
+          </button>
+
+          <button onClick={() => scrollToSection("transport")}>
+            <FiTruck className="nav-icon" />
+            <span>Travel Advisory</span>
           </button>
 
           <button onClick={() => scrollToSection("history")}>
-            History
+            <FiClock className="nav-icon" />
+            <span>History</span>
           </button>
         </nav>
       </aside>

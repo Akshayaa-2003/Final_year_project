@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-const API_BASE_URL = "https://crowd-prediction-website-01.onrender.com";
+// ✅ Use env variable (LOCAL / PROD safe)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,13 +15,12 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ Basic validation
     if (!email || !password) {
       alert("Please fill all fields");
       return;
     }
 
-    if (loading) return; // prevent double submit
+    if (loading) return;
     setLoading(true);
 
     try {
@@ -37,25 +37,19 @@ export default function Login() {
 
       const data = await response.json();
 
-      // ❌ Backend error
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         alert(data.message || "Login failed");
         return;
       }
 
-      // ❌ Logical failure
-      if (!data.success) {
-        alert(data.message || "Invalid login");
-        return;
-      }
-
-      // ✅ SUCCESS
+      // ✅ Save user
       localStorage.setItem("user", JSON.stringify(data.user));
+
       navigate("/", { replace: true });
 
-    } catch (err) {
-      console.error("LOGIN FETCH ERROR:", err);
-      alert("Unable to connect to server");
+    } catch (error) {
+      console.error("LOGIN ERROR:", error);
+      alert("Server not reachable");
     } finally {
       setLoading(false);
     }

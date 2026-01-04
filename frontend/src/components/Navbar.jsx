@@ -5,6 +5,7 @@ import "./Navbar.css";
 export default function Navbar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const dropdownRef = useRef(null);
 
   let user = null;
@@ -14,10 +15,15 @@ export default function Navbar() {
     user = null;
   }
 
-  const handleLogout = () => {
-    if (!window.confirm("Are you sure you want to logout?")) return;
+  // 🔴 Open confirm modal
+  const handleLogoutClick = () => {
+    setShowConfirm(true);
+  };
 
+  // ✅ Confirm logout
+  const confirmLogout = () => {
     localStorage.removeItem("user");
+    setShowConfirm(false);
     setOpen(false);
     navigate("/login", { replace: true });
   };
@@ -25,10 +31,7 @@ export default function Navbar() {
   // 🔥 Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setOpen(false);
       }
     };
@@ -39,61 +42,89 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="navbar">
-      <div className="nav-box">
-        <div
-          className="logo"
-          onClick={() => navigate("/")}
-          style={{ cursor: "pointer" }}
-        >
-          Crowd <span>Prediction</span>
-        </div>
-
-        {user && (
-          <div className="profile-wrapper" ref={dropdownRef}>
-            {/* ICON */}
-            <div
-              className="profile-icon"
-              onClick={() => setOpen((prev) => !prev)}
-              title="Account"
-            >
-              {user.name?.charAt(0) || "U"}
-            </div>
-
-            {/* SLIDE PANEL */}
-            {open && (
-              <div className="profile-dropdown">
-                <div className="profile-header">
-                  <div className="profile-avatar-lg">
-                    {user.name?.charAt(0) || "U"}
-                  </div>
-                  <div>
-                    <div className="profile-name">{user.name}</div>
-                    <div className="profile-email">{user.email}</div>
-                  </div>
-                </div>
-
-                <button
-                  className="profile-action"
-                  onClick={() => {
-                    setOpen(false);
-                    navigate("/profile");
-                  }}
-                >
-                  View Profile
-                </button>
-
-                <button
-                  className="profile-action logout"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </button>
-              </div>
-            )}
+    <>
+      <nav className="navbar">
+        <div className="nav-box">
+          <div
+            className="logo"
+            onClick={() => navigate("/")}
+            style={{ cursor: "pointer" }}
+          >
+            Crowd <span>Prediction</span>
           </div>
-        )}
-      </div>
-    </nav>
+
+          {user && (
+            <div className="profile-wrapper" ref={dropdownRef}>
+              {/* PROFILE ICON */}
+              <div
+                className="profile-icon"
+                onClick={() => setOpen((prev) => !prev)}
+                title="Account"
+              >
+                {user.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+
+              {/* DROPDOWN */}
+              {open && (
+                <div className="profile-dropdown">
+                  <div className="profile-header">
+                    <div className="profile-avatar-lg">
+                      {user.name?.charAt(0)?.toUpperCase() || "U"}
+                    </div>
+                    <div>
+                      <div className="profile-name">{user.name}</div>
+                      <div className="profile-email">{user.email}</div>
+                    </div>
+                  </div>
+
+                  <button
+                    className="profile-action"
+                    onClick={() => {
+                      setOpen(false);
+                      navigate("/profile");
+                    }}
+                  >
+                    View Profile
+                  </button>
+
+                  <button
+                    className="profile-action logout"
+                    onClick={handleLogoutClick}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </nav>
+
+      {/* 🔔 LOGOUT CONFIRM MODAL */}
+      {showConfirm && (
+        <div className="confirm-overlay">
+          <div className="confirm-box">
+            <h3>Confirm Logout</h3>
+            <p>Are you sure you want to logout?</p>
+
+            <div className="confirm-actions">
+              <button
+                className="confirm-btn cancel"
+                onClick={() => setShowConfirm(false)}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="confirm-btn logout"
+                onClick={confirmLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
