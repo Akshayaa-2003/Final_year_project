@@ -11,22 +11,29 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false); // ✅ ADD
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!name || !email || !password || !confirmPassword) {
+      alert("Please fill all fields");
+      return;
+    }
 
     if (password !== confirmPassword) {
       alert("Passwords do not match");
       return;
     }
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim(),
@@ -34,22 +41,23 @@ export default function Signup() {
         }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
+      if (!response.ok) {
         alert(data.message || "Signup failed");
         return;
       }
 
-      // ✅ SAVE TOKEN
-      localStorage.setItem("token", data.token);
+      if (!data.success) {
+        alert(data.message || "Signup failed");
+        return;
+      }
 
-      // ✅ REDIRECT TO WELCOME PAGE
+      localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/", { replace: true });
-
     } catch (err) {
-      console.error(err);
-      alert("Server error");
+      console.error("SIGNUP FETCH ERROR:", err);
+      alert("Unable to connect to server");
     } finally {
       setLoading(false);
     }
@@ -68,9 +76,9 @@ export default function Signup() {
                 <label>Name</label>
                 <input
                   type="text"
-                  placeholder="Your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
                   required
                 />
               </div>
@@ -79,9 +87,9 @@ export default function Signup() {
                 <label>Email</label>
                 <input
                   type="email"
-                  placeholder="Your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Your email"
                   required
                 />
               </div>
@@ -92,9 +100,9 @@ export default function Signup() {
                 <label>Password</label>
                 <input
                   type="password"
-                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
                   required
                 />
               </div>
@@ -103,9 +111,9 @@ export default function Signup() {
                 <label>Confirm Password</label>
                 <input
                   type="password"
-                  placeholder="Confirm password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm password"
                   required
                 />
               </div>
@@ -114,7 +122,7 @@ export default function Signup() {
             <button
               type="submit"
               className="auth-btn"
-              disabled={loading}   // ✅ prevent double click
+              disabled={loading}
             >
               {loading ? "Creating account..." : "Sign Up"}
             </button>

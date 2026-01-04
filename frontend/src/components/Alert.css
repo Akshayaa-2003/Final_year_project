@@ -1,0 +1,44 @@
+/* ===============================
+   CUSTOM ALERT
+=============================== */
+
+.alert {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  min-width: 260px;
+  max-width: 340px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  animation: slideDown 0.3s ease;
+  z-index: 9999;
+}
+
+/* TYPES */
+.alert.success {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+.alert.error {
+  background: linear-gradient(135deg, #991b1b, #7f1d1d);
+}
+
+.alert.info {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* ANIMATION */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

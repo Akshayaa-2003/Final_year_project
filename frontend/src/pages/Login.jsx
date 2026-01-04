@@ -2,43 +2,56 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
+const API_BASE_URL = "https://crowd-prediction-website-01.onrender.com";
+
 export default function Login() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!email || !password) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const res = await fetch(
-        "http://localhost:5000/api/auth/login", // ✅ LOGIN API
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
+      });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
+      if (!response.ok) {
         alert(data.message || "Login failed");
         return;
       }
 
-      // ✅ SAVE TOKEN
-      localStorage.setItem("token", data.token);
+      if (!data.success) {
+        alert(data.message || "Invalid login");
+        return;
+      }
 
-      // ✅ REDIRECT TO WELCOME PAGE
+      localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/", { replace: true });
-
-    } catch (error) {
-      console.error(error);
-      alert("Server error");
+    } catch (err) {
+      console.error("LOGIN FETCH ERROR:", err);
+      alert("Unable to connect to server");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,10 +67,9 @@ export default function Login() {
               <label>Email</label>
               <input
                 type="email"
-                autoComplete="email"
-                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
                 required
               />
             </div>
@@ -66,16 +78,15 @@ export default function Login() {
               <label>Password</label>
               <input
                 type="password"
-                autoComplete="current-password"
-                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
                 required
               />
             </div>
 
-            <button type="submit" className="auth-btn">
-              Login
+            <button className="auth-btn" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 
