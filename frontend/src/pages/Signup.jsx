@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Signup.css";
 
-// ✅ Vite env (local + prod safe)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// ✅ Vite env with safe fallback (local dev)
+const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL || "http://localhost:10000").replace(/\/$/, "");
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -16,13 +17,6 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // 🔒 Guard: env missing
-    if (!API_BASE_URL) {
-      alert("API not configured. Contact admin.");
-      console.error("VITE_API_BASE_URL is missing");
-      return;
-    }
 
     // ✅ Validation
     if (!name || !email || !password || !confirmPassword) {
@@ -52,8 +46,7 @@ export default function Signup() {
         }
       );
 
-      // ✅ Prevent JSON crash
-      let data = {};
+      let data;
       try {
         data = await response.json();
       } catch {

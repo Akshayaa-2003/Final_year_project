@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-// ✅ Vite env
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// ✅ Vite env with safe fallback (local dev)
+const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL || "http://localhost:10000").replace(/\/$/, "");
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,12 +15,6 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!API_BASE_URL) {
-      alert("API not configured. Contact admin.");
-      console.error("VITE_API_BASE_URL is missing");
-      return;
-    }
 
     if (!email || !password) {
       alert("Please fill all fields");
@@ -42,8 +37,7 @@ export default function Login() {
         }
       );
 
-      // ✅ Prevent JSON crash
-      let data = {};
+      let data;
       try {
         data = await response.json();
       } catch {
@@ -57,7 +51,6 @@ export default function Login() {
 
       // ✅ Save user
       localStorage.setItem("user", JSON.stringify(data.user));
-
       navigate("/", { replace: true });
 
     } catch (error) {
@@ -98,20 +91,14 @@ export default function Login() {
               />
             </div>
 
-            <button
-              type="submit"
-              className="auth-btn"
-              disabled={loading}
-            >
+            <button type="submit" className="auth-btn" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 
           <p className="switch-text">
             Don’t have an account?{" "}
-            <span onClick={() => navigate("/signup")}>
-              Sign up
-            </span>
+            <span onClick={() => navigate("/signup")}>Sign up</span>
           </p>
         </div>
       </div>
