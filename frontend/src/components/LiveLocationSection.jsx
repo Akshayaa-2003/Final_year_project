@@ -64,67 +64,71 @@ export default function LiveLocationSection() {
     }
   };
 
-  /* ---------- DETECT USER LOCATION ---------- */
-  const handleLiveLocation = () => {
-    if (!navigator.geolocation) {
-      setError("Location services not supported");
-      return;
-    }
+/* ---------- DETECT USER LOCATION ---------- */
+const handleLiveLocation = () => {
+  if (!navigator.geolocation) {
+    setError("Location services not supported");
+    return;
+  }
 
-    setLoading(true);
-    setError("");
-    setArea("");
-    setAreaType("");
-    setPlaces([]);
-    setCrowdLevel("");
-    setAccuracy(null);
+  setLoading(true);
+  setError("");
+  setArea("");
+  setAreaType("");
+  setPlaces([]);
+  setCrowdLevel("");
+  setAccuracy(null);
 
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords;
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude, longitude, accuracy } = pos.coords;
 
-        // ❌ BAD GPS
-        if (accuracy > 200) {
-          setError(
-            "Low GPS accuracy detected. Please enable GPS and try again."
-          );
-          setLoading(false);
-          return;
-        }
-
-        try {
-          setAccuracy(Math.round(accuracy));
-          setCoords({ lat: latitude, lng: longitude });
-          await fetchCrowdData(latitude, longitude);
-        } catch (err) {
-          console.error(err);
-          setError("Unable to fetch live crowd data");
-        } finally {
-          setLoading(false);
-        }
-      },
-      () => {
-        setError("Location permission denied");
+      // ❌ BLOCK ONLY VERY BAD GPS
+      if (accuracy > 1000) {
+        setError(
+          "Location accuracy is very low. Please try on mobile or enable GPS."
+        );
         setLoading(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 20000,
-        maximumAge: 0,
+        return;
       }
-    );
-  };
 
-  /* ---------- AUTO REFRESH ---------- */
-  useEffect(() => {
-    if (!coords || accuracy > 200) return;
+      // ⚠️ LOW BUT ACCEPTABLE (Desktop / WiFi)
+      if (accuracy > 200) {
+        console.warn("Using approximate location (Wi-Fi based)");
+      }
 
-    const interval = setInterval(() => {
-      fetchCrowdData(coords.lat, coords.lng);
-    }, 30 * 60 * 1000);
+      try {
+        setAccuracy(Math.round(accuracy));
+        setCoords({ lat: latitude, lng: longitude });
+        await fetchCrowdData(latitude, longitude);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to fetch live crowd data");
+      } finally {
+        setLoading(false);
+      }
+    },
+    () => {
+      setError("Location permission denied");
+      setLoading(false);
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: 0,
+    }
+  );
+};
+/* ---------- AUTO REFRESH ---------- */
+useEffect(() => {
+  if (!coords || accuracy > 1000) return;
 
-    return () => clearInterval(interval);
-  }, [coords, accuracy]);
+  const interval = setInterval(() => {
+    fetchCrowdData(coords.lat, coords.lng);
+  }, 30 * 60 * 1000);
+
+  return () => clearInterval(interval);
+}, [coords, accuracy]);
 
   return (
     <section className="live-section">
