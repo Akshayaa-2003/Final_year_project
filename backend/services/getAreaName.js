@@ -15,49 +15,73 @@ export async function getAreaName(lat, lng) {
     const data = await res.json();
     const a = data.address || {};
 
-    /* ---------- SUB AREA ---------- */
+    /* ---------- SUB AREA (MOST PRECISE) ---------- */
     const subArea =
       a.suburb ||
       a.neighbourhood ||
+      a.locality ||
       a.village ||
       a.hamlet ||
       a.quarter ||
       "";
 
-    /* ---------- DISTRICT LOGIC (KEY FIX) ---------- */
-    let district = "";
+    /* ---------- CITY ---------- */
+    const city =
+      a.city ||
+      a.town ||
+      a.municipality ||
+      "";
 
-    // 1️⃣ Prefer state_district (more reliable in TN)
-    if (a.state_district) {
-      district = a.state_district;
+    /* ---------- DISTRICT (INDIA SAFE) ---------- */
+    let district =
+      a.state_district ||
+      a.county ||
+      a.city_district ||
+      "";
+
+    /* ---------- CLEAN FUNCTION ---------- */
+    const clean = (text) =>
+      text
+        .replace(
+          /\b(north|south|east|west|taluk|zone|division|circle)\b/gi,
+          ""
+        )
+        .replace(/\s{2,}/g, " ")
+        .trim();
+
+    const cleanSubArea = clean(subArea);
+    const cleanCity = clean(city);
+    district = clean(district);
+
+    /* ---------- MAJOR CITY NORMALIZATION ---------- */
+    const majorCities = [
+      "coimbatore",
+      "chennai",
+      "madurai",
+      "trichy",
+      "salem",
+      "erode",
+    ];
+
+    const combined = JSON.stringify(a).toLowerCase();
+
+    for (const c of majorCities) {
+      if (combined.includes(c)) {
+        district = c.charAt(0).toUpperCase() + c.slice(1);
+        break;
+      }
     }
-    // 2️⃣ Fallback to county
-    else if (a.county) {
-      district = a.county;
-    }
 
-    // 3️⃣ Final fallback
-    else if (a.city_district) {
-      district = a.city_district;
-    }
+    /* ---------- FINAL PRIORITY ---------- */
+    if (cleanSubArea && district)
+      return `${cleanSubArea}, ${district}`;
 
-    /* ---------- CLEAN DISTRICT ---------- */
-    district = district
-      .replace(/\b(north|south|east|west)\b/i, "")
-      .trim();
+    if (cleanCity && district)
+      return `${cleanCity}, ${district}`;
 
-    /* ---------- COIMBATORE NORMALIZATION ---------- */
-    // If either field mentions Coimbatore → lock to Coimbatore
-    const districtText = `${a.state_district || ""} ${a.county || ""}`.toLowerCase();
-
-    if (districtText.includes("coimbatore")) {
-      district = "Coimbatore";
-    }
-
-    /* ---------- FINAL OUTPUT ---------- */
-    if (subArea && district) return `${subArea}, ${district}`;
     if (district) return district;
-    if (subArea) return subArea;
+    if (cleanCity) return cleanCity;
+    if (cleanSubArea) return cleanSubArea;
 
     return "Unknown Area";
   } catch (err) {

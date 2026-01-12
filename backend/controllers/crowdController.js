@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 import { getAreaName } from "../config/geocode.js";
 import { predictCrowd } from "../utils/crowdLogic.js";
 
@@ -13,13 +14,13 @@ export const predictCrowdController = async (req, res) => {
     lat = Number(lat);
     lng = Number(lng);
 
-    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
       return res.status(400).json({
         message: "Valid latitude and longitude are required",
       });
     }
 
-    /* ---------- AREA NAME (API ONLY) ---------- */
+    /* ---------- AREA NAME ---------- */
     let area = "Unknown Area";
     try {
       area = await getAreaName(lat, lng);
@@ -27,43 +28,45 @@ export const predictCrowdController = async (req, res) => {
       console.error("getAreaName failed:", e.message);
     }
 
-    /* ---------- OVERPASS QUERY (WIDER + MULTI TYPE) ---------- */
+    /* ---------- OVERPASS QUERY ---------- */
     const radius = 1500;
 
     const query = `
-      [out:json];
+      [out:json][timeout:25];
       (
-        node(around:${radius}, ${lat}, ${lng})["amenity"="hospital"];
-        node(around:${radius}, ${lat}, ${lng})["amenity"="bus_station"];
-        node(around:${radius}, ${lat}, ${lng})["amenity"="school"];
-        node(around:${radius}, ${lat}, ${lng})["amenity"="college"];
-        node(around:${radius}, ${lat}, ${lng})["shop"];
+        node["amenity"="hospital"](around:${radius},${lat},${lng});
+        node["amenity"="bus_station"](around:${radius},${lat},${lng});
+        node["amenity"~"school|college"](around:${radius},${lat},${lng});
+        node["shop"](around:${radius},${lat},${lng});
       );
       out tags 20;
     `;
 
     let elements = [];
+
     try {
       const response = await fetch(
         "https://overpass-api.de/api/interpreter",
         {
           method: "POST",
+          headers: { "Content-Type": "text/plain" },
           body: query,
         }
       );
 
-      if (response.ok) {
+      if (!response.ok) {
+        console.error("Overpass error:", response.status);
+      } else {
         const data = await response.json();
         elements = Array.isArray(data.elements) ? data.elements : [];
-      } else {
-        console.error("Overpass error:", response.status);
       }
     } catch (e) {
       console.error("Overpass fetch failed:", e.message);
     }
 
     /* ---------- ANALYZE PLACES ---------- */
-    const places = [];
+    const placeSet = new Set();
+
     let hospital = 0;
     let transport = 0;
     let education = 0;
@@ -73,40 +76,37 @@ export const predictCrowdController = async (req, res) => {
       const tags = el.tags || {};
       if (!tags.name) continue;
 
-      places.push(tags.name);
+      placeSet.add(tags.name);
 
       if (tags.amenity === "hospital") hospital++;
       if (tags.amenity === "bus_station") transport++;
-      if (tags.amenity === "school" || tags.amenity === "college") education++;
+      if (tags.amenity === "school" || tags.amenity === "college")
+        education++;
       if (tags.shop) commercial++;
     }
 
+    const places = [...placeSet];
     const totalPlaces = places.length;
 
-    /* ---------- AREA TYPE (SMART & RARE) ---------- */
+    /* ---------- AREA TYPE ---------- */
     let areaType = "Public Area";
 
-    if (hospital >= 5 && hospital / totalPlaces >= 0.6) {
-      areaType = "Hospital Area";
-    } else if (transport >= 3) {
-      areaType = "Transport Area";
-    } else if (education >= 3) {
-      areaType = "Educational Area";
-    } else if (commercial >= 4) {
-      areaType = "Commercial Area";
+    if (totalPlaces >= 3) {
+      if (hospital >= 3) areaType = "Hospital Area";
+      else if (transport >= 2) areaType = "Transport Area";
+      else if (education >= 3) areaType = "Educational Area";
+      else if (commercial >= 4) areaType = "Commercial Area";
     }
 
-    /* ---------- CROWD LEVEL (HONEST) ---------- */
-    let crowdLevel = "LOW";
-    if (totalPlaces >= 8) crowdLevel = "HIGH";
-    else if (totalPlaces >= 4) crowdLevel = "MEDIUM";
+    /* ---------- CROWD LEVEL ---------- */
+    const crowdLevel = predictCrowd(places);
 
-    /* ---------- FINAL RESPONSE ---------- */
-    res.json({
+    /* ---------- RESPONSE ---------- */
+    return res.json({
       success: true,
-      location: area,              // from geocode only
-      areaType,                    // smart logic
-      places: places.slice(0, 10), // limit
+      location: area,
+      areaType,
+      places: places.slice(0, 10),
       crowdLevel,
       meta: {
         totalPlaces,
@@ -118,7 +118,7 @@ export const predictCrowdController = async (req, res) => {
     });
   } catch (error) {
     console.error("Crowd Controller Fatal Error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Live crowd detection failed",
     });
   }

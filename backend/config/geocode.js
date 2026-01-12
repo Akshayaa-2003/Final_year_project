@@ -19,35 +19,53 @@ export async function getAreaName(lat, lng) {
     const data = await res.json();
     const address = data.address || {};
 
+    /* ---------- SUB AREA ---------- */
     const subArea =
       address.suburb ||
       address.neighbourhood ||
       address.quarter ||
       address.hamlet ||
-      address.village;
+      address.village ||
+      "";
 
+    /* ---------- CITY ---------- */
     const city =
       address.city ||
       address.town ||
-      address.municipality;
+      address.municipality ||
+      "";
 
-    const district =
-      address.county ||           // Coimbatore District
-      address.state_district;     // fallback
+    /* ---------- DISTRICT (INDIA SAFE) ---------- */
+    let district =
+      address.state_district ||
+      address.county ||
+      "";
 
-    // 🔥 INDIA-SAFE DECISION LOGIC
-    // If city and district conflict → trust district
-    if (subArea && district) {
-      return `${subArea}, ${district}`;
+    /* ---------- CLEAN NAMES ---------- */
+    const clean = (text) =>
+      text
+        .replace(/\b(north|south|east|west|taluk|zone|division)\b/gi, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+
+    const cleanSubArea = clean(subArea);
+    const cleanCity = clean(city);
+    district = clean(district);
+
+    /* ---------- FINAL DECISION ---------- */
+    // Prefer: SubArea, District
+    if (cleanSubArea && district) {
+      return `${cleanSubArea}, ${district}`;
     }
 
-    if (city && district) {
-      return `${city}, ${district}`;
+    // Fallback: City, District
+    if (cleanCity && district) {
+      return `${cleanCity}, ${district}`;
     }
 
     if (district) return district;
-    if (city) return city;
-    if (subArea) return subArea;
+    if (cleanCity) return cleanCity;
+    if (cleanSubArea) return cleanSubArea;
 
     return "Unknown Area";
   } catch (err) {

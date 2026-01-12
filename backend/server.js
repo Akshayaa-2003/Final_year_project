@@ -7,27 +7,34 @@ import authRoutes from "./routes/auth.js";
 import crowdRoutes from "./routes/crowd.js";
 
 dotenv.config();
-connectDB();
+
+/* ---------- CONNECT DB SAFELY ---------- */
+connectDB().catch((err) => {
+  console.error("DB Connection Failed:", err.message);
+  process.exit(1);
+});
 
 const app = express();
 
-/* ---------- IMPORTANT FOR DEPLOYMENT ---------- */
+/* ---------- TRUST PROXY (RENDER / VERCEL) ---------- */
 app.set("trust proxy", 1);
 
 /* ---------- MIDDLEWARE ---------- */
 app.use(
   cors({
-    origin: "*", // allow frontend (Vite / Render)
+    origin: true, // allow dynamic frontend origin
     credentials: true,
   })
 );
-app.use(express.json());
+
+app.use(express.json({ limit: "1mb" }));
 
 /* ---------- HEALTH CHECK ---------- */
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     success: true,
     message: "Backend running successfully",
+    uptime: process.uptime(),
   });
 });
 
@@ -38,15 +45,18 @@ app.use("/api/crowd", crowdRoutes);
 /* ---------- 404 HANDLER ---------- */
 app.use((req, res) => {
   res.status(404).json({
+    success: false,
     message: "Route not found",
   });
 });
 
-/* ---------- ERROR HANDLER ---------- */
+/* ---------- GLOBAL ERROR HANDLER ---------- */
 app.use((err, req, res, next) => {
-  console.error("Server Error:", err.message);
-  res.status(500).json({
-    message: "Internal Server Error",
+  console.error("Server Error:", err);
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
   });
 });
 

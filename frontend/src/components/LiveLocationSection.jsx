@@ -1,8 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "./LiveLocationSection.css";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+/* ---------- HELPERS ---------- */
+
+const normalizePlaces = (data) => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data.filter(Boolean);
+  if (typeof data === "string")
+    return data.split(",").map((p) => p.trim()).filter(Boolean);
+  return [];
+};
+
+const detectAreaType = (places = []) => {
+  if (places.length === 0) return "Public Area";
+
+  const text = places.join(" ").toLowerCase();
+
+  if (/hospital|clinic|medical/.test(text)) return "Hospital Area";
+  if (/bus|railway|station|metro|airport/.test(text)) return "Transport Area";
+  if (/college|school|university/.test(text)) return "Educational Area";
+  if (/mall|market|shop|complex/.test(text)) return "Commercial Area";
+
+  return "Public Area";
+};
+
+const calculateCrowdLevel = (count) => {
+  if (count >= 10) return "HIGH";
+  if (count >= 5) return "MEDIUM";
+  return "LOW";
+};
 
 export default function LiveLocationSection() {
   const [loading, setLoading] = useState(false);
@@ -13,24 +42,10 @@ export default function LiveLocationSection() {
   const [places, setPlaces] = useState([]);
   const [crowdLevel, setCrowdLevel] = useState("");
   const [accuracy, setAccuracy] = useState(null);
-
   const [coords, setCoords] = useState(null);
 
-  /* ---------- NORMALIZE PLACES ---------- */
-  const normalizePlaces = (data) => {
-    if (!data) return [];
-    if (Array.isArray(data)) return data;
-    if (typeof data === "string")
-      return data.split(",").map((p) => p.trim());
-    if (typeof data === "object")
-      return Object.values(data).map((p) =>
-        typeof p === "string" ? p : p.name
-      );
-    return [];
-  };
-
-  /* ---------- CALL BACKEND ---------- */
-  const fetchCrowdData = async (lat, lng) => {
+  /* ---------- BACKEND ---------- */
+  const fetchCrowdData = useCallback(async (lat, lng) => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/crowd/predict`, {
         method: "POST",
@@ -39,82 +54,69 @@ export default function LiveLocationSection() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Server error");
+      if (!res.ok) throw new Error(data.message);
 
       const nearbyPlaces = normalizePlaces(data.places);
 
       setArea(data.location || "Unknown Area");
       setPlaces(nearbyPlaces);
-
-      // Area Type
-      setAreaType(
-        nearbyPlaces.length <= 1
-          ? "Public Area"
-          : data.areaType || "Public Area"
-      );
-
-      // Crowd Level
-      if (nearbyPlaces.length >= 8) setCrowdLevel("HIGH");
-      else if (nearbyPlaces.length >= 4) setCrowdLevel("MEDIUM");
-      else setCrowdLevel("LOW");
+      setAreaType(detectAreaType(nearbyPlaces));
+      setCrowdLevel(calculateCrowdLevel(nearbyPlaces.length));
     } catch (err) {
       console.error(err);
       setError("Unable to fetch live crowd data");
     }
-  };
+  }, []);
 
-  /* ---------- DETECT USER LOCATION ---------- */
+  /* ---------- LOCATION ---------- */
   const handleLiveLocation = () => {
-  if (!navigator.geolocation) {
-    setError("Location services not supported");
-    return;
-  }
-
-  setLoading(true);
-  setArea("");
-  setAreaType("");
-  setPlaces([]);
-  setCrowdLevel("");
-  setAccuracy(null);
-
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const { latitude, longitude, accuracy } = pos.coords;
-
-      // ⚠️ Warn but DO NOT block
-      if (accuracy > 1000) {
-        setError(
-          "Using approximate location (Wi-Fi based). Results may be less accurate."
-        );
-      } else if (accuracy > 200) {
-        setError("Using approximate location (Wi-Fi based).");
-      } else {
-        setError("");
-      }
-
-      try {
-        setAccuracy(Math.round(accuracy));
-        setCoords({ lat: latitude, lng: longitude });
-        await fetchCrowdData(latitude, longitude);
-      } catch (err) {
-        console.error(err);
-        setError("Unable to fetch live crowd data");
-      } finally {
-        setLoading(false);
-      }
-    },
-    () => {
-      setError("Location permission denied");
-      setLoading(false);
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 20000,
-      maximumAge: 0,
+    if (!navigator.geolocation) {
+      setError("Location services not supported");
+      return;
     }
-  );
-};
 
+    setLoading(true);
+    setError("");
+    setArea("");
+    setPlaces([]);
+    setCrowdLevel("");
+    setAccuracy(null);
+    setCoords(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        const roundedAccuracy = Math.round(coords.accuracy);
+        setAccuracy(roundedAccuracy);
+
+        // 🚫 HARD BLOCK — DO NOT TRUST DESKTOP WIFI
+        if (roundedAccuracy > 5000) {
+          setError(
+            "Location accuracy is too low. Please use mobile GPS for live crowd prediction."
+          );
+          setLoading(false);
+          return;
+        }
+
+        const location = {
+          lat: coords.latitude,
+          lng: coords.longitude,
+        };
+
+        setCoords(location);
+        await fetchCrowdData(location.lat, location.lng);
+        setLoading(false);
+      },
+      () => {
+        setError("Location permission denied");
+        setLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0,
+      }
+    );
+  };
 
   /* ---------- AUTO REFRESH ---------- */
   useEffect(() => {
@@ -125,7 +127,9 @@ export default function LiveLocationSection() {
     }, 30 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [coords]);
+  }, [coords, fetchCrowdData]);
+
+  const canShowResults = accuracy !== null && accuracy <= 5000 && area;
 
   return (
     <section className="live-section">
@@ -147,32 +151,27 @@ export default function LiveLocationSection() {
 
         {error && <div className="error-box">{error}</div>}
 
-        {area && (
+        {/* ✅ TRUSTED RESULTS ONLY */}
+        {canShowResults && (
           <div className="results-section">
-            {/* AREA */}
             <div className="area-box">
               <span className="label">Your Current Area</span>
               <h3>{area}</h3>
-
-              {accuracy && (
-                <p className="accuracy">
-                  GPS Accuracy: ±{accuracy} meters
-                </p>
-              )}
-
+              <p className="accuracy">
+                GPS Accuracy: ±{accuracy} meters
+              </p>
               <p className="area-type">
                 Area Type: <strong>{areaType}</strong>
               </p>
             </div>
 
-            {/* PLACES */}
             <div className="places-box">
               <span className="label">Nearby Places</span>
               <div className="places-grid">
-                {places.length > 0 ? (
-                  places.slice(0, 8).map((place, index) => (
-                    <div key={index} className="place-card">
-                      📍 {place}
+                {places.length ? (
+                  places.slice(0, 8).map((p, i) => (
+                    <div key={i} className="place-card">
+                      📍 {p}
                     </div>
                   ))
                 ) : (
@@ -183,13 +182,10 @@ export default function LiveLocationSection() {
               </div>
             </div>
 
-            {/* CROWD */}
-            {crowdLevel && (
-              <div className={`crowd-result ${crowdLevel.toLowerCase()}`}>
-                <span>Estimated Crowd Level</span>
-                <strong>{crowdLevel}</strong>
-              </div>
-            )}
+            <div className={`crowd-result ${crowdLevel.toLowerCase()}`}>
+              <span>Estimated Crowd Level</span>
+              <strong>{crowdLevel}</strong>
+            </div>
           </div>
         )}
       </div>
