@@ -31,104 +31,99 @@ export default function LiveLocationSection() {
 
   /* ---------- CALL BACKEND ---------- */
   const fetchCrowdData = async (lat, lng) => {
-    const res = await fetch(`${API_BASE_URL}/api/crowd/predict`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lat, lng }),
-    });
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/crowd/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat, lng }),
+      });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Server error");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Server error");
 
-    const nearbyPlaces = normalizePlaces(data.places);
+      const nearbyPlaces = normalizePlaces(data.places);
 
-    setArea(data.location || "Unknown Area");
-    setPlaces(nearbyPlaces);
+      setArea(data.location || "Unknown Area");
+      setPlaces(nearbyPlaces);
 
-    /* ---------- HARD SAFETY RULES ---------- */
+      // Area Type
+      setAreaType(
+        nearbyPlaces.length <= 1
+          ? "Public Area"
+          : data.areaType || "Public Area"
+      );
 
-    // ✅ Area Type
-    if (nearbyPlaces.length <= 1) {
-      setAreaType("Public Area");
-    } else {
-      setAreaType(data.areaType || "Public Area");
-    }
-
-    // ✅ Crowd Level
-    if (nearbyPlaces.length >= 8) {
-      setCrowdLevel("HIGH");
-    } else if (nearbyPlaces.length >= 4) {
-      setCrowdLevel("MEDIUM");
-    } else {
-      setCrowdLevel("LOW");
+      // Crowd Level
+      if (nearbyPlaces.length >= 8) setCrowdLevel("HIGH");
+      else if (nearbyPlaces.length >= 4) setCrowdLevel("MEDIUM");
+      else setCrowdLevel("LOW");
+    } catch (err) {
+      console.error(err);
+      setError("Unable to fetch live crowd data");
     }
   };
 
-/* ---------- DETECT USER LOCATION ---------- */
-const handleLiveLocation = () => {
-  if (!navigator.geolocation) {
-    setError("Location services not supported");
-    return;
-  }
+  /* ---------- DETECT USER LOCATION ---------- */
+  const handleLiveLocation = () => {
+    if (!navigator.geolocation) {
+      setError("Location services not supported");
+      return;
+    }
 
-  setLoading(true);
-  setError("");
-  setArea("");
-  setAreaType("");
-  setPlaces([]);
-  setCrowdLevel("");
-  setAccuracy(null);
+    setLoading(true);
+    setError("");
+    setArea("");
+    setAreaType("");
+    setPlaces([]);
+    setCrowdLevel("");
+    setAccuracy(null);
 
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const { latitude, longitude, accuracy } = pos.coords;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
 
-      // ❌ BLOCK ONLY VERY BAD GPS
-      if (accuracy > 1000) {
-        setError(
-          "Location accuracy is very low. Please try on mobile or enable GPS."
-        );
-        setLoading(false);
-        return;
-      }
+        // ❌ BLOCK ONLY VERY BAD GPS
+        if (accuracy > 1000) {
+          setError(
+            "Location accuracy is very low. Please try on mobile or enable GPS."
+          );
+          setLoading(false);
+          return;
+        }
 
-      // ⚠️ LOW BUT ACCEPTABLE (Desktop / WiFi)
-      if (accuracy > 200) {
-        console.warn("Using approximate location (Wi-Fi based)");
-      }
+        // ⚠️ LOW BUT ACCEPTABLE
+        if (accuracy > 200) {
+          console.warn("Using approximate location (Wi-Fi based)");
+        }
 
-      try {
         setAccuracy(Math.round(accuracy));
         setCoords({ lat: latitude, lng: longitude });
+
         await fetchCrowdData(latitude, longitude);
-      } catch (err) {
-        console.error(err);
-        setError("Unable to fetch live crowd data");
-      } finally {
         setLoading(false);
+      },
+      () => {
+        setError("Location permission denied");
+        setLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0,
       }
-    },
-    () => {
-      setError("Location permission denied");
-      setLoading(false);
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 20000,
-      maximumAge: 0,
-    }
-  );
-};
-/* ---------- AUTO REFRESH ---------- */
-useEffect(() => {
-  if (!coords || accuracy > 1000) return;
+    );
+  };
 
-  const interval = setInterval(() => {
-    fetchCrowdData(coords.lat, coords.lng);
-  }, 30 * 60 * 1000);
+  /* ---------- AUTO REFRESH ---------- */
+  useEffect(() => {
+    if (!coords) return;
 
-  return () => clearInterval(interval);
-}, [coords, accuracy]);
+    const interval = setInterval(() => {
+      fetchCrowdData(coords.lat, coords.lng);
+    }, 30 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [coords]);
 
   return (
     <section className="live-section">
