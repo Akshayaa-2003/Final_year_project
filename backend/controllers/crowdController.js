@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import { getAreaName } from "../config/geocode.js";
 import { predictCrowd } from "../utils/crowdLogic.js";
 

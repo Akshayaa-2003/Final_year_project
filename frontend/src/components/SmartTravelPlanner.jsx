@@ -2,13 +2,60 @@ import { useState } from "react";
 import { calculateFinalCrowd } from "../utils/crowdUtils";
 import "./SmartTravelPlanner.css";
 
+/* ================= COIMBATORE DATA ================= */
+
 const PLACES = [
-  "CMBT",
-  "Koyambedu",
-  "Guindy",
-  "T. Nagar",
-  "Marina Beach",
-  "Parrys",
+  // Central
+  "Gandhipuram",
+  "Town Hall",
+  "Ukkadam",
+  "RS Puram",
+  "Sungam",
+
+  // North Coimbatore
+  "Thudiyalur",
+  "Saravanampatti",
+  "Koundampalayam",
+  "Vadavalli",
+  "Periyanaickenpalayam",
+
+  // East Coimbatore
+  "Peelamedu",
+  "Hope College",
+  "Avinashi Road",
+  "Kalapatti",
+  "Neelambur",
+
+  // South Coimbatore
+  "Singanallur",
+  "Ondipudur",
+  "Ramanathapuram",
+  "Sundarapuram",
+  "Podanur",
+
+  // West Coimbatore
+  "Saibaba Colony",
+  "PN Palayam",
+  "Kovaipudur",
+  "Thondamuthur",
+
+  // IT / Industrial
+  "Chinniyampalayam",
+  "CODISSIA",
+  "Tidel Park",
+  "SIDCO",
+
+  // Transport Hubs
+  "Coimbatore Junction",
+  "Coimbatore North",
+  "Omni Bus Stand",
+  "Gandhipuram Bus Stand",
+
+  // Education / Hospitals
+  "PSG Tech",
+  "KMCH",
+  "Ganga Hospital",
+  "Government Hospital"
 ];
 
 const TRANSPORT_MODES = ["Bus", "Train", "Metro"];
@@ -25,7 +72,7 @@ const reverseCrowdWeight = {
   3: "high",
 };
 
-export default function SmartTravelPlanner({ city = "Chennai" }) {
+export default function SmartTravelPlanner({ city = "Coimbatore" }) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [fromTime, setFromTime] = useState("");
@@ -33,10 +80,11 @@ export default function SmartTravelPlanner({ city = "Chennai" }) {
   const [mode, setMode] = useState("Bus");
   const [result, setResult] = useState(null);
 
+  /* ===== MOCK SOCIAL POSTS (COIMBATORE) ===== */
   const posts = [
-    { text: "Heavy traffic near Marina Beach", minutesAgo: 10 },
-    { text: "Very crowded today", minutesAgo: 25 },
-    { text: "Long queue at bus stand", minutesAgo: 40 },
+    { text: "Heavy traffic near Gandhipuram", minutesAgo: 10 },
+    { text: "Crowded buses at Ukkadam", minutesAgo: 25 },
+    { text: "Long waiting time at Town Hall", minutesAgo: 40 },
   ];
 
   const googleTrendScore = 72;
@@ -49,7 +97,6 @@ export default function SmartTravelPlanner({ city = "Chennai" }) {
   const predictCrowd = (currentCrowd, hoursLater) => {
     let level = crowdWeight[currentCrowd];
 
-    // Crowd usually reduces over time unless peak hour
     if (hoursLater === 1) level -= 0.5;
     if (hoursLater === 2) level -= 1;
 
@@ -78,6 +125,7 @@ export default function SmartTravelPlanner({ city = "Chennai" }) {
       currentCrowd === "medium" ? 10 : 0;
 
     const peakDelay = isPeak ? 10 : 0;
+
     const total = baseTime + crowdDelay + peakDelay;
 
     let recommendation;
@@ -89,9 +137,6 @@ export default function SmartTravelPlanner({ city = "Chennai" }) {
       current: currentCrowd,
       after1Hour: predictCrowd(currentCrowd, 1),
       after2Hour: predictCrowd(currentCrowd, 2),
-      baseTime,
-      crowdDelay,
-      peakDelay,
       total,
       recommendation,
     });
@@ -141,12 +186,20 @@ export default function SmartTravelPlanner({ city = "Chennai" }) {
           <div className="planner-time-grid">
             <div>
               <label>From Time</label>
-              <input type="time" value={fromTime} onChange={(e) => setFromTime(e.target.value)} />
+              <input
+                type="time"
+                value={fromTime}
+                onChange={(e) => setFromTime(e.target.value)}
+              />
             </div>
 
             <div>
               <label>To Time</label>
-              <input type="time" value={toTime} onChange={(e) => setToTime(e.target.value)} />
+              <input
+                type="time"
+                value={toTime}
+                onChange={(e) => setToTime(e.target.value)}
+              />
             </div>
           </div>
 
@@ -169,7 +222,7 @@ export default function SmartTravelPlanner({ city = "Chennai" }) {
         </div>
 
         {result && (
-          <div className={`planner-result-section show`}>
+          <div className="planner-result-section show">
             <div className={`planner-result ${result.current}`}>
               <div className="planner-route">
                 {from} → {to}
@@ -182,11 +235,11 @@ export default function SmartTravelPlanner({ city = "Chennai" }) {
                   <strong>{result.current.toUpperCase()}</strong>
                 </div>
                 <div>
-                  <span>After 1 HOUR</span>
+                  <span>AFTER 1 HOUR</span>
                   <strong>{result.after1Hour.toUpperCase()}</strong>
                 </div>
                 <div>
-                  <span>After 2 HOURS</span>
+                  <span>AFTER 2 HOURS</span>
                   <strong>{result.after2Hour.toUpperCase()}</strong>
                 </div>
                 <div>

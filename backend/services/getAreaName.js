@@ -1,4 +1,8 @@
 export async function getAreaName(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return "Unknown Area";
+  }
+
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`,
@@ -6,6 +10,7 @@ export async function getAreaName(lat, lng) {
         headers: {
           "User-Agent": "crowd-prediction-app/1.0",
           "Accept-Language": "en",
+          "Referer": "http://localhost", // SAFE before deploy
         },
       }
     );
@@ -13,7 +18,7 @@ export async function getAreaName(lat, lng) {
     if (!res.ok) throw new Error("Reverse geocoding failed");
 
     const data = await res.json();
-    const a = data.address || {};
+    const a = data?.address || {};
 
     /* ---------- SUB AREA (MOST PRECISE) ---------- */
     const subArea =
@@ -40,7 +45,7 @@ export async function getAreaName(lat, lng) {
       "";
 
     /* ---------- CLEAN FUNCTION ---------- */
-    const clean = (text) =>
+    const clean = (text = "") =>
       text
         .replace(
           /\b(north|south|east|west|taluk|zone|division|circle)\b/gi,
@@ -53,26 +58,29 @@ export async function getAreaName(lat, lng) {
     const cleanCity = clean(city);
     district = clean(district);
 
-    /* ---------- MAJOR CITY NORMALIZATION ---------- */
+    /* ---------- MAJOR CITY NORMALIZATION (SAFE FIX) ---------- */
     const majorCities = [
       "coimbatore",
       "chennai",
       "madurai",
-      "trichy",
+      "tiruchirappalli",
       "salem",
       "erode",
     ];
 
     const combined = JSON.stringify(a).toLowerCase();
 
-    for (const c of majorCities) {
-      if (combined.includes(c)) {
-        district = c.charAt(0).toUpperCase() + c.slice(1);
-        break;
+    // Only override district IF it is empty
+    if (!district) {
+      for (const c of majorCities) {
+        if (combined.includes(c)) {
+          district = c.charAt(0).toUpperCase() + c.slice(1);
+          break;
+        }
       }
     }
 
-    /* ---------- FINAL PRIORITY ---------- */
+    /* ---------- FINAL PRIORITY (NO EMPTY RETURNS) ---------- */
     if (cleanSubArea && district)
       return `${cleanSubArea}, ${district}`;
 
