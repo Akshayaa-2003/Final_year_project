@@ -1,9 +1,8 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, "");
 
 // 🔮 PREDICT API
 export const predictCrowd = async (payload) => {
-  const response = await fetch(`${API_BASE_URL}/api/predict`, {
+  const response = await fetch(`${API_BASE_URL}/api/crowd/predict`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
