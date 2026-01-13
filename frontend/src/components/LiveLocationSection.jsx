@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import "./LiveLocationSection.css";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+/* ---------- API BASE (BULLETPROOF) ---------- */
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
+).replace(/\/+$/, "");
 
 /* ---------- HELPERS ---------- */
 
@@ -15,7 +17,7 @@ const normalizePlaces = (data) => {
 };
 
 const detectAreaType = (places = []) => {
-  if (places.length === 0) return "Public Area";
+  if (!places.length) return "Public Area";
 
   const text = places.join(" ").toLowerCase();
 
@@ -44,7 +46,7 @@ export default function LiveLocationSection() {
   const [accuracy, setAccuracy] = useState(null);
   const [coords, setCoords] = useState(null);
 
-  /* ---------- BACKEND ---------- */
+  /* ---------- BACKEND CALL ---------- */
   const fetchCrowdData = useCallback(async (lat, lng) => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/crowd/predict`, {
@@ -54,7 +56,7 @@ export default function LiveLocationSection() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      if (!res.ok) throw new Error(data.message || "API error");
 
       const nearbyPlaces = normalizePlaces(data.places);
 
@@ -88,13 +90,11 @@ export default function LiveLocationSection() {
         const roundedAccuracy = Math.round(coords.accuracy);
         setAccuracy(roundedAccuracy);
 
-        // 🚫 HARD BLOCK — DO NOT TRUST DESKTOP WIFI
+        // ⚠️ Allow desktop but warn
         if (roundedAccuracy > 5000) {
           setError(
-            "Location accuracy is too low. Please use mobile GPS for live crowd prediction."
+            "Using approximate location (desktop). Results may be less accurate."
           );
-          setLoading(false);
-          return;
         }
 
         const location = {
@@ -118,7 +118,7 @@ export default function LiveLocationSection() {
     );
   };
 
-  /* ---------- AUTO REFRESH ---------- */
+  /* ---------- AUTO REFRESH (30 mins) ---------- */
   useEffect(() => {
     if (!coords) return;
 
@@ -129,7 +129,7 @@ export default function LiveLocationSection() {
     return () => clearInterval(interval);
   }, [coords, fetchCrowdData]);
 
-  const canShowResults = accuracy !== null && accuracy <= 5000 && area;
+  const canShowResults = accuracy !== null && area;
 
   return (
     <section className="live-section">
@@ -151,7 +151,6 @@ export default function LiveLocationSection() {
 
         {error && <div className="error-box">{error}</div>}
 
-        {/* ✅ TRUSTED RESULTS ONLY */}
         {canShowResults && (
           <div className="results-section">
             <div className="area-box">
