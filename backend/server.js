@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import path from "path";
 
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
@@ -22,12 +23,15 @@ app.set("trust proxy", 1);
 /* ---------- MIDDLEWARE ---------- */
 app.use(
   cors({
-    origin: true, // allow dynamic frontend origin
+    origin: true,
     credentials: true,
   })
 );
 
 app.use(express.json({ limit: "1mb" }));
+
+/* ---------- ✅ SERVE STATIC FILES (FIX FOR favicon.ico) ---------- */
+app.use(express.static(path.join(process.cwd(), "public")));
 
 /* ---------- HEALTH CHECK ---------- */
 app.get("/", (req, res) => {
