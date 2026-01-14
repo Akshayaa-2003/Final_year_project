@@ -1,171 +1,94 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import "./ResultSection.css";
 
 export default function ResultSection({ result }) {
   const [loading, setLoading] = useState(false);
 
-  /* ===============================
-     SAFE BASE DATA (NO EARLY RETURN)
-  =============================== */
-  const safeResult =
-    result && typeof result === "object" ? result : {};
+  if (!result || typeof result !== "object") return null;
 
-  const city = safeResult.city ?? "—";
+  /* ===============================
+     SAFE FIELD MAPPING
+  =============================== */
+  const city = result.city ?? "—";
 
   const location =
-    safeResult.place ??
-    safeResult.location ??
-    safeResult.locationType ??
+    result.place ??
+    result.location ??
+    result.locationType ??
     "Not specified";
 
   const activity =
-    safeResult.activityLevel ??
-    safeResult.activity ??
-    safeResult.locationType ??
+    result.activityLevel ??
+    result.activity ??
+    result.locationType ??
     "Normal";
 
   const rawCrowd =
-    safeResult.finalCrowd ??
-    safeResult.crowdLevel ??
-    "Medium"; // demo-safe default
+    result.finalCrowd ??
+    result.crowdLevel ??
+    "Medium";
 
   const crowd =
     ["Low", "Medium", "High"].includes(rawCrowd)
       ? rawCrowd
       : "Medium";
 
-  const reason = safeResult.reason ?? null;
-  const recommendation = safeResult.recommendation ?? null;
+  const reason = result.reason ?? null;
+  const recommendation = result.recommendation ?? null;
 
   const time =
-    safeResult.time ??
+    result.time ??
     new Date().toLocaleString("en-IN");
 
   /* ===============================
-     DEMO RANDOMIZATION (HOOK SAFE)
+     DEMO RANDOM (NO HOOKS 🔥)
   =============================== */
-  const { demoLabel, demoPercent } = useMemo(() => {
-    const tags = {
-      Low: ["Smooth Movement", "Free Flow", "No Delay Expected"],
-      Medium: [
-        "Moderate Flow",
-        "Balanced Crowd",
-        "Slight Delay Possible",
-        "Normal Public Movement"
-      ],
-      High: ["Heavy Congestion", "Peak Crowd Zone", "Delay Expected"]
-    };
+  const tags = {
+    Low: ["Smooth Movement", "Free Flow", "No Delay Expected"],
+    Medium: [
+      "Moderate Flow",
+      "Balanced Crowd",
+      "Slight Delay Possible",
+      "Normal Public Movement"
+    ],
+    High: ["Heavy Congestion", "Peak Crowd Zone", "Delay Expected"]
+  };
 
-    const levelTags = tags[crowd];
-    const label =
-      levelTags[Math.floor(Math.random() * levelTags.length)];
+  const demoLabel =
+    tags[crowd][Math.floor(Math.random() * tags[crowd].length)];
 
-    const percent =
-      crowd === "Low"
-        ? 55 + Math.floor(Math.random() * 15)
-        : crowd === "Medium"
-        ? 70 + Math.floor(Math.random() * 15)
-        : 85 + Math.floor(Math.random() * 10);
-
-    return { demoLabel: label, demoPercent: percent };
-  }, [crowd, time]);
-
-  /* ===============================
-     NOW SAFE TO EXIT
-  =============================== */
-  if (!result) return null;
+  const demoPercent =
+    crowd === "Low"
+      ? 55 + Math.floor(Math.random() * 15)
+      : crowd === "Medium"
+      ? 70 + Math.floor(Math.random() * 15)
+      : 85 + Math.floor(Math.random() * 10);
 
   /* ===============================
      PDF DOWNLOAD
   =============================== */
   const handleDownloadPDF = () => {
     setLoading(true);
+    const win = window.open("", "_blank");
+    if (!win) return setLoading(false);
 
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      alert("Popup blocked. Please allow popups.");
-      setLoading(false);
-      return;
-    }
-
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8" />
-<title>Crowd Prediction Report</title>
-<style>
-body {
-  font-family: system-ui, sans-serif;
-  padding:30px;
-  background:#f8fafc;
-}
-.container {
-  max-width:520px;
-  margin:auto;
-  background:#fff;
-  padding:30px;
-  border-radius:14px;
-}
-h1 { text-align:center; color:#dc2626; }
-.details p { margin:10px 0; }
-.level {
-  margin-top:20px;
-  font-size:26px;
-  font-weight:700;
-  color:#b91c1c;
-  text-align:center;
-}
-.meta { margin-top:16px; font-size:14px; }
-.time {
-  text-align:center;
-  font-size:13px;
-  color:#6b7280;
-  margin-top:12px;
-}
-</style>
-</head>
-<body>
-<div class="container">
-  <h1>Crowd Prediction Report</h1>
-
-  <div class="details">
-    <p><strong>City:</strong> ${city}</p>
-    <p><strong>Location:</strong> ${location}</p>
-    <p><strong>Activity:</strong> ${activity}</p>
-    <p><strong>Confidence:</strong> ${demoPercent}%</p>
-  </div>
-
-  <div class="level">${crowd} – ${demoLabel}</div>
-
-  ${
-    reason ? `<div class="meta"><strong>Reason:</strong> ${reason}</div>` : ""
-  }
-  ${
-    recommendation
-      ? `<div class="meta"><strong>Recommendation:</strong> ${recommendation}</div>`
-      : ""
-  }
-
-  <div class="time">Generated on ${time}</div>
-</div>
-</body>
-</html>
-`;
-
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+    win.document.write(`
+      <h2>Crowd Prediction Report</h2>
+      <p><b>City:</b> ${city}</p>
+      <p><b>Location:</b> ${location}</p>
+      <p><b>Activity:</b> ${activity}</p>
+      <p><b>Crowd:</b> ${crowd} (${demoPercent}%)</p>
+      <p><b>Note:</b> ${demoLabel}</p>
+      <p>${time}</p>
+    `);
 
     setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
+      win.print();
+      win.close();
       setLoading(false);
-    }, 400);
+    }, 300);
   };
 
-  /* ===============================
-     UI
-  =============================== */
   return (
     <section className="result-section" id="results">
       <div className="result-container">
@@ -197,7 +120,7 @@ h1 { text-align:center; color:#dc2626; }
               <span className="item-label">Crowd Level</span>
               <span className={`item-value large ${crowd.toLowerCase()}`}>
                 {crowd}{" "}
-                <small style={{ fontSize: "14px", color: "#6b7280" }}>
+                <small style={{ color: "#6b7280" }}>
                   ({demoLabel})
                 </small>
               </span>
