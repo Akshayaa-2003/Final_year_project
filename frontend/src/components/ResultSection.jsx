@@ -4,64 +4,56 @@ import "./ResultSection.css";
 export default function ResultSection({ result }) {
   const [loading, setLoading] = useState(false);
 
-  if (!result || typeof result !== "object") return null;
-
   /* ===============================
-     SAFE FIELD MAPPING
+     SAFE BASE DATA (NO EARLY RETURN)
   =============================== */
-  const city = result.city ?? "—";
+  const safeResult =
+    result && typeof result === "object" ? result : {};
+
+  const city = safeResult.city ?? "—";
 
   const location =
-    result.place ??
-    result.location ??
-    result.locationType ??
+    safeResult.place ??
+    safeResult.location ??
+    safeResult.locationType ??
     "Not specified";
 
   const activity =
-    result.activityLevel ??
-    result.activity ??
-    result.locationType ??
+    safeResult.activityLevel ??
+    safeResult.activity ??
+    safeResult.locationType ??
     "Normal";
 
   const rawCrowd =
-    result.finalCrowd ??
-    result.crowdLevel ??
-    "Unknown";
+    safeResult.finalCrowd ??
+    safeResult.crowdLevel ??
+    "Medium"; // demo-safe default
 
-  // ✅ normalize crowd level
   const crowd =
     ["Low", "Medium", "High"].includes(rawCrowd)
       ? rawCrowd
-      : "Medium"; // demo-safe fallback
+      : "Medium";
+
+  const reason = safeResult.reason ?? null;
+  const recommendation = safeResult.recommendation ?? null;
 
   const time =
-    result.time ??
+    safeResult.time ??
     new Date().toLocaleString("en-IN");
 
-  const reason = result.reason ?? null;
-  const recommendation = result.recommendation ?? null;
-
   /* ===============================
-     DEMO RANDOMIZATION (STABLE)
+     DEMO RANDOMIZATION (HOOK SAFE)
   =============================== */
   const { demoLabel, demoPercent } = useMemo(() => {
     const tags = {
-      Low: [
-        "Smooth Movement",
-        "Free Flow",
-        "No Delay Expected"
-      ],
+      Low: ["Smooth Movement", "Free Flow", "No Delay Expected"],
       Medium: [
         "Moderate Flow",
         "Balanced Crowd",
         "Slight Delay Possible",
         "Normal Public Movement"
       ],
-      High: [
-        "Heavy Congestion",
-        "Peak Crowd Zone",
-        "Delay Expected"
-      ]
+      High: ["Heavy Congestion", "Peak Crowd Zone", "Delay Expected"]
     };
 
     const levelTags = tags[crowd];
@@ -79,7 +71,12 @@ export default function ResultSection({ result }) {
   }, [crowd, time]);
 
   /* ===============================
-     PDF DOWNLOAD (SAFE)
+     NOW SAFE TO EXIT
+  =============================== */
+  if (!result) return null;
+
+  /* ===============================
+     PDF DOWNLOAD
   =============================== */
   const handleDownloadPDF = () => {
     setLoading(true);
@@ -110,13 +107,8 @@ body {
   padding:30px;
   border-radius:14px;
 }
-h1 {
-  text-align:center;
-  color:#dc2626;
-}
-.details p {
-  margin:10px 0;
-}
+h1 { text-align:center; color:#dc2626; }
+.details p { margin:10px 0; }
 .level {
   margin-top:20px;
   font-size:26px;
@@ -124,11 +116,7 @@ h1 {
   color:#b91c1c;
   text-align:center;
 }
-.meta {
-  margin-top:16px;
-  font-size:14px;
-  color:#374151;
-}
+.meta { margin-top:16px; font-size:14px; }
 .time {
   text-align:center;
   font-size:13px;
@@ -138,29 +126,29 @@ h1 {
 </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Crowd Prediction Report</h1>
+<div class="container">
+  <h1>Crowd Prediction Report</h1>
 
-    <div class="details">
-      <p><strong>City:</strong> ${city}</p>
-      <p><strong>Location:</strong> ${location}</p>
-      <p><strong>Activity:</strong> ${activity}</p>
-      <p><strong>Confidence:</strong> ${demoPercent}%</p>
-    </div>
-
-    <div class="level">
-      ${crowd} – ${demoLabel}
-    </div>
-
-    ${reason ? `<div class="meta"><strong>Reason:</strong> ${reason}</div>` : ""}
-    ${
-      recommendation
-        ? `<div class="meta"><strong>Recommendation:</strong> ${recommendation}</div>`
-        : ""
-    }
-
-    <div class="time">Generated on ${time}</div>
+  <div class="details">
+    <p><strong>City:</strong> ${city}</p>
+    <p><strong>Location:</strong> ${location}</p>
+    <p><strong>Activity:</strong> ${activity}</p>
+    <p><strong>Confidence:</strong> ${demoPercent}%</p>
   </div>
+
+  <div class="level">${crowd} – ${demoLabel}</div>
+
+  ${
+    reason ? `<div class="meta"><strong>Reason:</strong> ${reason}</div>` : ""
+  }
+  ${
+    recommendation
+      ? `<div class="meta"><strong>Recommendation:</strong> ${recommendation}</div>`
+      : ""
+  }
+
+  <div class="time">Generated on ${time}</div>
+</div>
 </body>
 </html>
 `;
