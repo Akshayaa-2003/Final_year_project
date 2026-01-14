@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
 import "./ResultSection.css";
 
 export default function ResultSection({ result }) {
-  const [loading, setLoading] = useState(false);
+  // ❌ No hooks
+  // ❌ No early hook return
+  // ✅ Pure static component
 
   if (!result || typeof result !== "object") return null;
 
@@ -39,45 +40,22 @@ export default function ResultSection({ result }) {
     result.time ?? new Date().toLocaleString("en-IN");
 
   /* ===============================
-     STABLE DEMO VALUES (NO RE-RENDER BUG)
+     STATIC DEMO VALUES (NO RANDOM)
   =============================== */
-  const { label, confidence } = useMemo(() => {
-    const tags = {
-      Low: ["Smooth Movement", "Free Flow", "No Delay Expected"],
-      Medium: [
-        "Moderate Flow",
-        "Balanced Crowd",
-        "Slight Delay Possible"
-      ],
-      High: ["Heavy Congestion", "Peak Crowd Zone", "Delay Expected"]
-    };
+  const DEMO_MAP = {
+    Low: { label: "Smooth Movement", confidence: 65 },
+    Medium: { label: "Balanced Crowd", confidence: 78 },
+    High: { label: "Heavy Congestion", confidence: 92 }
+  };
 
-    const confidenceBase = {
-      Low: 60,
-      Medium: 75,
-      High: 90
-    };
-
-    const list = tags[crowd];
-    const label =
-      list[Math.floor(Math.random() * list.length)];
-
-    const confidence =
-      confidenceBase[crowd] +
-      Math.floor(Math.random() * 6);
-
-    return { label, confidence };
-  }, [crowd]);
+  const { label, confidence } = DEMO_MAP[crowd];
 
   /* ===============================
-     PDF DOWNLOAD
+     PDF DOWNLOAD (STATIC)
   =============================== */
   const handleDownloadPDF = () => {
-    setLoading(true);
-
     const win = window.open("", "_blank");
     if (!win) {
-      setLoading(false);
       alert("Popup blocked. Please allow popups.");
       return;
     }
@@ -88,7 +66,7 @@ export default function ResultSection({ result }) {
           <title>Crowd Prediction Report</title>
           <style>
             body {
-              font-family: Inter, Arial, sans-serif;
+              font-family: Arial, sans-serif;
               padding: 24px;
             }
             h2 {
@@ -115,12 +93,8 @@ export default function ResultSection({ result }) {
     `);
 
     win.document.close();
-
-    setTimeout(() => {
-      win.print();
-      win.close();
-      setLoading(false);
-    }, 400);
+    win.print();
+    win.close();
   };
 
   return (
@@ -144,11 +118,7 @@ export default function ResultSection({ result }) {
             </div>
 
             {reason && (
-              <ResultItem
-                full
-                label="Reason"
-                value={reason}
-              />
+              <ResultItem full label="Reason" value={reason} />
             )}
 
             {recommendation && (
@@ -163,9 +133,8 @@ export default function ResultSection({ result }) {
           <button
             className="download-btn"
             onClick={handleDownloadPDF}
-            disabled={loading}
           >
-            {loading ? "Generating..." : "📄 Download Report"}
+            📄 Download Report
           </button>
         </div>
       </div>
@@ -174,7 +143,7 @@ export default function ResultSection({ result }) {
 }
 
 /* ===============================
-   SMALL CLEAN SUB COMPONENT
+   PURE SUB COMPONENT
 ================================ */
 function ResultItem({ label, value, full }) {
   return (
