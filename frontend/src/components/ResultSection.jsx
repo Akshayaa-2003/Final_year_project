@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import "./ResultSection.css";
 
 export default function ResultSection({ result }) {
@@ -42,7 +42,45 @@ export default function ResultSection({ result }) {
     new Date().toLocaleString("en-IN");
 
   /* ===============================
-     PDF DOWNLOAD (SAFE + MIXED)
+     DEMO RANDOMIZATION (STABLE)
+     changes ONLY when result changes
+  =============================== */
+  const { demoLabel, demoPercent } = useMemo(() => {
+    const tags = {
+      Low: [
+        "Smooth Movement",
+        "Free Flow",
+        "No Delay Expected"
+      ],
+      Medium: [
+        "Moderate Flow",
+        "Balanced Crowd",
+        "Slight Delay Possible",
+        "Normal Public Movement"
+      ],
+      High: [
+        "Heavy Congestion",
+        "Peak Crowd Zone",
+        "Delay Expected"
+      ]
+    };
+
+    const levelTags = tags[crowd] || ["Normal Flow"];
+    const label =
+      levelTags[Math.floor(Math.random() * levelTags.length)];
+
+    const percent =
+      crowd === "Low"
+        ? 55 + Math.floor(Math.random() * 15)
+        : crowd === "Medium"
+        ? 70 + Math.floor(Math.random() * 15)
+        : 85 + Math.floor(Math.random() * 10);
+
+    return { demoLabel: label, demoPercent: percent };
+  }, [crowd, time]); // 👈 new prediction → new demo values
+
+  /* ===============================
+     PDF DOWNLOAD (SAFE + DEMO)
   =============================== */
   const handleDownloadPDF = () => {
     setLoading(true);
@@ -109,14 +147,12 @@ h1 {
       <p><strong>City:</strong> ${city}</p>
       <p><strong>Location:</strong> ${location}</p>
       <p><strong>Activity:</strong> ${activity}</p>
-      ${
-        confidence
-          ? `<p><strong>Confidence:</strong> ${confidence}%</p>`
-          : ""
-      }
+      <p><strong>Confidence:</strong> ${demoPercent}%</p>
     </div>
 
-    <div class="level">${crowd} Crowd Expected</div>
+    <div class="level">
+      ${crowd} – ${demoLabel}
+    </div>
 
     ${
       reason
@@ -168,17 +204,18 @@ h1 {
               <span className="item-value">{activity}</span>
             </div>
 
-            {confidence && (
-              <div className="result-item">
-                <span className="item-label">Confidence</span>
-                <span className="item-value">{confidence}%</span>
-              </div>
-            )}
+            <div className="result-item">
+              <span className="item-label">Confidence</span>
+              <span className="item-value">{demoPercent}%</span>
+            </div>
 
             <div className="result-item full-width">
               <span className="item-label">Crowd Level</span>
               <span className={`item-value large ${crowd.toLowerCase()}`}>
-                {crowd}
+                {crowd}{" "}
+                <small style={{ fontSize: "14px", color: "#6b7280" }}>
+                  ({demoLabel})
+                </small>
               </span>
             </div>
 
