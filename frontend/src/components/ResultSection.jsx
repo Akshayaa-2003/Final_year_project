@@ -7,7 +7,7 @@ export default function ResultSection({ result }) {
   if (!result || typeof result !== "object") return null;
 
   /* ===============================
-     SAFE FIELD MAPPING (OLD + NEW)
+     SAFE FIELD MAPPING
   =============================== */
   const city = result.city ?? "—";
 
@@ -23,27 +23,26 @@ export default function ResultSection({ result }) {
     result.locationType ??
     "Normal";
 
-  const crowd =
+  const rawCrowd =
     result.finalCrowd ??
     result.crowdLevel ??
     "Unknown";
 
-  const confidence =
-    result.confidence ?? null;
-
-  const reason =
-    result.reason ?? null;
-
-  const recommendation =
-    result.recommendation ?? null;
+  // ✅ normalize crowd level
+  const crowd =
+    ["Low", "Medium", "High"].includes(rawCrowd)
+      ? rawCrowd
+      : "Medium"; // demo-safe fallback
 
   const time =
     result.time ??
     new Date().toLocaleString("en-IN");
 
+  const reason = result.reason ?? null;
+  const recommendation = result.recommendation ?? null;
+
   /* ===============================
      DEMO RANDOMIZATION (STABLE)
-     changes ONLY when result changes
   =============================== */
   const { demoLabel, demoPercent } = useMemo(() => {
     const tags = {
@@ -65,7 +64,7 @@ export default function ResultSection({ result }) {
       ]
     };
 
-    const levelTags = tags[crowd] || ["Normal Flow"];
+    const levelTags = tags[crowd];
     const label =
       levelTags[Math.floor(Math.random() * levelTags.length)];
 
@@ -77,18 +76,17 @@ export default function ResultSection({ result }) {
         : 85 + Math.floor(Math.random() * 10);
 
     return { demoLabel: label, demoPercent: percent };
-  }, [crowd, time]); // 👈 new prediction → new demo values
+  }, [crowd, time]);
 
   /* ===============================
-     PDF DOWNLOAD (SAFE + DEMO)
+     PDF DOWNLOAD (SAFE)
   =============================== */
   const handleDownloadPDF = () => {
     setLoading(true);
 
     const printWindow = window.open("", "_blank");
-
     if (!printWindow) {
-      alert("Popup blocked. Please allow popups to download the report.");
+      alert("Popup blocked. Please allow popups.");
       setLoading(false);
       return;
     }
@@ -101,7 +99,7 @@ export default function ResultSection({ result }) {
 <title>Crowd Prediction Report</title>
 <style>
 body {
-  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-family: system-ui, sans-serif;
   padding:30px;
   background:#f8fafc;
 }
@@ -154,12 +152,7 @@ h1 {
       ${crowd} – ${demoLabel}
     </div>
 
-    ${
-      reason
-        ? `<div class="meta"><strong>Reason:</strong> ${reason}</div>`
-        : ""
-    }
-
+    ${reason ? `<div class="meta"><strong>Reason:</strong> ${reason}</div>` : ""}
     ${
       recommendation
         ? `<div class="meta"><strong>Recommendation:</strong> ${recommendation}</div>`
@@ -182,6 +175,9 @@ h1 {
     }, 400);
   };
 
+  /* ===============================
+     UI
+  =============================== */
   return (
     <section className="result-section" id="results">
       <div className="result-container">

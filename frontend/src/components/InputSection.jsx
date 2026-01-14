@@ -4,11 +4,13 @@ import { popularPlaces } from "../data/popularPlaces";
 
 /* ===============================
    SMART STATIC CROWD PREDICTION
-   (Mixed Result – Demo Friendly)
+   (Demo Friendly + Safe)
 ================================ */
 const predictCrowdLevel = ({ city, locationType, place }) => {
   let score = 0;
-  const type = locationType.toLowerCase();
+
+  // ✅ safety guard
+  const type = (locationType || "").toLowerCase();
 
   if (city) score += 1;
 
@@ -29,21 +31,21 @@ const predictCrowdLevel = ({ city, locationType, place }) => {
 
   if (place && place !== "General") score += 1;
 
-  let crowdLevel = "Low";
-  let confidence = 65;
-  let reason = "Low public movement observed";
-  let recommendation = "Comfortable visit, no congestion expected";
+  let crowdLevel = "Medium";
+  let confidence = 75;
+  let reason = "Normal public movement observed";
+  let recommendation = "Plan travel with basic buffer time";
 
   if (score <= 2) {
     crowdLevel = "Low";
     confidence = 65;
     reason = "Minimal activity in this area";
-    recommendation = "Best time to travel comfortably";
+    recommendation = "Best time for smooth travel";
   } else if (score <= 4) {
     crowdLevel = "Medium";
     confidence = 78;
     reason = "Routine activity with moderate public presence";
-    recommendation = "Plan with small buffer time";
+    recommendation = "Small delay possible during peak time";
   } else {
     crowdLevel = "High";
     confidence = 90;
@@ -79,8 +81,7 @@ export default function InputSection({ onPredict, detectedCity }) {
   useEffect(() => {
     setLoadingCities(true);
     try {
-      const cityList = Object.keys(popularPlaces);
-      setCities(cityList);
+      setCities(Object.keys(popularPlaces));
     } catch {
       setCityError("Failed to load cities");
     } finally {
@@ -148,23 +149,24 @@ export default function InputSection({ onPredict, detectedCity }) {
       place: place || "General"
     };
 
-    const mixed = predictCrowdLevel(payload);
-
-    const result = {
-      ...payload,
-      ...mixed,
-      time: new Date().toLocaleString("en-IN")
-    };
-
-    onPredict(result);
-
+    // ⏳ demo realism
     setTimeout(() => {
+      const mixed = predictCrowdLevel(payload);
+
+      const result = {
+        ...payload,
+        ...mixed,
+        time: new Date().toLocaleString("en-IN")
+      };
+
+      onPredict(result);
+
       document.querySelector("#results")?.scrollIntoView({
         behavior: "smooth"
       });
-    }, 300);
 
-    setPredictLoading(false);
+      setPredictLoading(false);
+    }, 300);
   };
 
   return (
