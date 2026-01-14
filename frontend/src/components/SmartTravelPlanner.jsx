@@ -5,40 +5,283 @@ import "./SmartTravelPlanner.css";
    ALL TAMIL NADU DISTRICTS
 ================================ */
 const CITY_PLACES = {
-  Chennai: ["CMBT", "Koyambedu", "Guindy", "T. Nagar", "Marina Beach", "Parrys", "Adyar", "Velachery", "Mylapore", "Egmore"],
-  Coimbatore: ["Gandhipuram", "Ukkadam", "RS Puram", "Peelamedu", "Singanallur", "Saravanampatti", "Podanur", "Kovaipudur", "Sivananda Colony", "Trinity Circle"],
-  Madurai: ["Periyar Bus Stand", "Mattuthavani", "Anna Nagar", "Thirunagar", "Yanaikkal", "Vilangudi", "Simmakkal", "Alanganallur"],
-  Trichy: ["Chatram Bus Stand", "Srirangam", "Thillai Nagar", "Cantonment", "K.K. Nagar", "Puthur", "BHEL", "Golden Rock"],
-  Salem: ["New Bus Stand", "Old Bus Stand", "Hasthampatti", "Fairlands", "Sankagiri Road"],
-  Thanjavur: ["Bus Stand", "Main Market", "College Road", "Thanjavur Junction"],
-  Tirunelveli: ["Palayamkottai", "Junction", "Railway Station", "Tirunelveli Town"],
+  Chennai: [
+    "CMBT",
+    "Koyambedu",
+    "Guindy",
+    "T. Nagar",
+    "Marina Beach",
+    "Parrys",
+    "Adyar",
+    "Velachery",
+    "Mylapore",
+    "Egmore"
+  ],
+  Coimbatore: [
+    "Gandhipuram",
+    "Ukkadam",
+    "RS Puram",
+    "Peelamedu",
+    "Singanallur",
+    "Saravanampatti",
+    "Podanur",
+    "Kovaipudur",
+    "Sivananda Colony",
+    "Trinity Circle"
+  ],
+  Madurai: [
+    "Periyar Bus Stand",
+    "Mattuthavani",
+    "Anna Nagar",
+    "Thirunagar",
+    "Yanaikkal",
+    "Vilangudi",
+    "Simmakkal",
+    "Alanganallur"
+  ],
+  Trichy: [
+    "Chatram Bus Stand",
+    "Srirangam",
+    "Thillai Nagar",
+    "Cantonment",
+    "K.K. Nagar",
+    "Puthur",
+    "BHEL",
+    "Golden Rock"
+  ],
+  Salem: [
+    "New Bus Stand",
+    "Old Bus Stand",
+    "Hasthampatti",
+    "Fairlands",
+    "Sankagiri Road"
+  ],
+  Thanjavur: [
+    "Bus Stand",
+    "Main Market",
+    "College Road",
+    "Thanjavur Junction"
+  ],
+  Tirunelveli: [
+    "Palayamkottai",
+    "Junction",
+    "Railway Station",
+    "Tirunelveli Town"
+  ],
   Erode: ["Clock Tower", "Central Bus Stand", "Brough Road"],
   Dindigul: ["Bus Stand", "Railway Junction", "Temple Road"],
-  Kanyakumari: ["Nagercoil Bus Stand", "Kanyakumari Beach", "Railway Station"],
+  Kanyakumari: [
+    "Nagercoil Bus Stand",
+    "Kanyakumari Beach",
+    "Railway Station"
+  ],
   "The Nilgiris": ["Ooty Bus Stand", "Coonoor", "Kotagiri"],
-  Vellore: ["Katpadi", "Vellore Bus Stand", "Villivakkam", "Walajah Road", "Sathuvachari", "Gandhi Road"],
-  Tiruppur: ["Town Bus Stand", "Railway Station", "Market", "Industrial Area", "Avinashi Road", "Kangeyam Road", "Nallur"],
-  Cuddalore: ["Bus Stand", "Railway Station", "Town Area", "Market", "Kattumannarkoil", "Veerampattinam", "Panruti"],
-  Nagapattinam: ["Bus Stand", "Railway Station", "Beach Road", "Town Area", "Keezhvelur", "Thirupoondi", "Vedaranyam"],
-  Villupuram: ["Bus Stand", "Railway Station", "Market", "Temple Area", "Tindivanam", "Melmalayanur", "Thiruvennainallur"],
-  Thoothukudi: ["V.O.C Bus Stand", "Railway Station", "Town Area", "Beach Road", "Therespuram", "Kayathar", "Sattankulam"],
-  Tiruvallur: ["Ponneri", "Tiruvallur Bus Stand", "Railway Station", "Market", "Gummidipoondi", "Avadi", "Thiruninravur"],
-  Karur: ["Bus Stand", "Railway Station", "Town Area", "Industrial Area", "K. Paramathi", "Kadavur", "Krishnarayapuram"],
-  Namakkal: ["Bus Stand", "Railway Station", "Market", "Town Area", "Kumarapalayam", "Rasipuram", "Velur"],
-  Ramanathapuram: ["Bus Stand", "Railway Station", "Market", "Temple Area", "Paramakudi", "Mudukulathur", "Rameswaram"],
-  Sivaganga: ["Bus Stand", "Railway Station", "Town Market", "Temple Area", "Karaikudi", "Devakottai", "Manamadurai"],
-  Theni: ["Bus Stand", "Railway Station", "Town Area", "Market", "Periyakulam", "Bodinayakanur", "Uthamapalayam"],
-  Kanchipuram: ["Temple Area", "Bus Stand", "Market Street", "Railway Station", "Thirupachur", "Walajabad", "Uthiramerur"],
-  Thiruvannamalai: ["Main Bus Stand", "Railway Station", "Temple Area", "Market", "Annamalai Nagar", "Melathikkan", "Chengam Road"],
-  Tiruppattur: ["Bus Stand", "Railway Station", "Town Area", "Market", "Vaniyambadi", "Ambur", "Natrampalli"],
-  Tenkasi: ["Bus Stand", "Railway Station", "Market", "Temple Area", "Shenkottai", "Alangulam", "Kadayanallur"],
-  Ariyalur: ["Bus Stand", "Railway Station", "Market", "Town Area", "Jayankondam", "Udayarpalayam", "Sendurai"],
-  Mayiladuthurai: ["Bus Stand", "Railway Station", "Temple Area", "Market", "Sirkali", "Kuthalam", "Kottur"],
-  Krishnagiri: ["Bus Stand", "Railway Station", "Market", "Town Area", "Hosur", "Pochampalli", "Uthangarai"],
-  Perambalur: ["Bus Stand", "Railway Station", "Market", "Town Area", "Veppanthattai", "Alathur", "Kunnam"],
-  Pudukkottai: ["Bus Stand", "Railway Station", "Market", "Town Area", "Aranthangi", "Alangudi", "Avudaiyarkoil"],
-  Ranipet: ["Walajah Road", "Ranipet Bus Stand", "Market", "Town Area", "Arcot", "Walajapet", "Sholingur"],
-  Tiruvarur: ["Bus Stand", "Railway Station", "Temple Area", "Market", "Mannargudi", "Nannilam", "Kodavasal"],
+  Vellore: [
+    "Katpadi",
+    "Vellore Bus Stand",
+    "Villivakkam",
+    "Walajah Road",
+    "Sathuvachari",
+    "Gandhi Road"
+  ],
+  Tiruppur: [
+    "Town Bus Stand",
+    "Railway Station",
+    "Market",
+    "Industrial Area",
+    "Avinashi Road",
+    "Kangeyam Road",
+    "Nallur"
+  ],
+  Cuddalore: [
+    "Bus Stand",
+    "Railway Station",
+    "Town Area",
+    "Market",
+    "Kattumannarkoil",
+    "Veerampattinam",
+    "Panruti"
+  ],
+  Nagapattinam: [
+    "Bus Stand",
+    "Railway Station",
+    "Beach Road",
+    "Town Area",
+    "Keezhvelur",
+    "Thirupoondi",
+    "Vedaranyam"
+  ],
+  Villupuram: [
+    "Bus Stand",
+    "Railway Station",
+    "Market",
+    "Temple Area",
+    "Tindivanam",
+    "Melmalayanur",
+    "Thiruvennainallur"
+  ],
+  Thoothukudi: [
+    "V.O.C Bus Stand",
+    "Railway Station",
+    "Town Area",
+    "Beach Road",
+    "Therespuram",
+    "Kayathar",
+    "Sattankulam"
+  ],
+  Tiruvallur: [
+    "Ponneri",
+    "Tiruvallur Bus Stand",
+    "Railway Station",
+    "Market",
+    "Gummidipoondi",
+    "Avadi",
+    "Thiruninravur"
+  ],
+  Karur: [
+    "Bus Stand",
+    "Railway Station",
+    "Town Area",
+    "Industrial Area",
+    "K. Paramathi",
+    "Kadavur",
+    "Krishnarayapuram"
+  ],
+  Namakkal: [
+    "Bus Stand",
+    "Railway Station",
+    "Market",
+    "Town Area",
+    "Kumarapalayam",
+    "Rasipuram",
+    "Velur"
+  ],
+  Ramanathapuram: [
+    "Bus Stand",
+    "Railway Station",
+    "Market",
+    "Temple Area",
+    "Paramakudi",
+    "Mudukulathur",
+    "Rameswaram"
+  ],
+  Sivaganga: [
+    "Bus Stand",
+    "Railway Station",
+    "Town Market",
+    "Temple Area",
+    "Karaikudi",
+    "Devakottai",
+    "Manamadurai"
+  ],
+  Theni: [
+    "Bus Stand",
+    "Railway Station",
+    "Town Area",
+    "Market",
+    "Periyakulam",
+    "Bodinayakanur",
+    "Uthamapalayam"
+  ],
+  Kanchipuram: [
+    "Temple Area",
+    "Bus Stand",
+    "Market Street",
+    "Railway Station",
+    "Thirupachur",
+    "Walajabad",
+    "Uthiramerur"
+  ],
+  Thiruvannamalai: [
+    "Main Bus Stand",
+    "Railway Station",
+    "Temple Area",
+    "Market",
+    "Annamalai Nagar",
+    "Melathikkan",
+    "Chengam Road"
+  ],
+  Tiruppattur: [
+    "Bus Stand",
+    "Railway Station",
+    "Town Area",
+    "Market",
+    "Vaniyambadi",
+    "Ambur",
+    "Natrampalli"
+  ],
+  Tenkasi: [
+    "Bus Stand",
+    "Railway Station",
+    "Market",
+    "Temple Area",
+    "Shenkottai",
+    "Alangulam",
+    "Kadayanallur"
+  ],
+  Ariyalur: [
+    "Bus Stand",
+    "Railway Station",
+    "Market",
+    "Town Area",
+    "Jayankondam",
+    "Udayarpalayam",
+    "Sendurai"
+  ],
+  Mayiladuthurai: [
+    "Bus Stand",
+    "Railway Station",
+    "Temple Area",
+    "Market",
+    "Sirkali",
+    "Kuthalam",
+    "Kottur"
+  ],
+  Krishnagiri: [
+    "Bus Stand",
+    "Railway Station",
+    "Market",
+    "Town Area",
+    "Hosur",
+    "Pochampalli",
+    "Uthangarai"
+  ],
+  Perambalur: [
+    "Bus Stand",
+    "Railway Station",
+    "Market",
+    "Town Area",
+    "Veppanthattai",
+    "Alathur",
+    "Kunnam"
+  ],
+  Pudukkottai: [
+    "Bus Stand",
+    "Railway Station",
+    "Market",
+    "Town Area",
+    "Aranthangi",
+    "Alangudi",
+    "Avudaiyarkoil"
+  ],
+  Ranipet: [
+    "Walajah Road",
+    "Ranipet Bus Stand",
+    "Market",
+    "Town Area",
+    "Arcot",
+    "Walajapet",
+    "Sholingur"
+  ],
+  Tiruvarur: [
+    "Bus Stand",
+    "Railway Station",
+    "Temple Area",
+    "Market",
+    "Mannargudi",
+    "Nannilam",
+    "Kodavasal"
+  ],
   Dharmapuri: ["Dharmapuri Bus Stand", "Palacode", "Pennagaram"]
 };
 
@@ -72,16 +315,22 @@ export default function SmartTransportCrowd() {
     if (!from || !to || from === to) return;
 
     const hour = Number(currentTime.split(":")[0]);
-    const isPeak = (hour >= 8 && hour <= 11) || (hour >= 17 && hour <= 20);
+    const isPeak =
+      (hour >= 8 && hour <= 11) || (hour >= 17 && hour <= 20);
 
-    let districtLevel = crowdWeight["medium"]; // default medium
+    let districtLevel = crowdWeight["medium"];
     let placeLevel = 1;
 
-    let score = (districtLevel + placeLevel + (isPeak ? 1 : 0)) * (mode === "Bus" ? 1 : mode === "Train" ? 0.8 : 0.5);
+    let score =
+      (districtLevel + placeLevel + (isPeak ? 1 : 0)) *
+      (mode === "Bus" ? 1 : mode === "Train" ? 0.8 : 0.5);
 
-    let current = score >= 5 ? "high" : score >= 3 ? "medium" : "low";
+    let current =
+      score >= 5 ? "high" : score >= 3 ? "medium" : "low";
+
     const base = mode === "Bus" ? 45 : mode === "Train" ? 35 : 25;
-    const delay = current === "high" ? 15 : current === "medium" ? 8 : 0;
+    const delay =
+      current === "high" ? 15 : current === "medium" ? 8 : 0;
 
     setResult({
       current,
@@ -114,7 +363,9 @@ export default function SmartTransportCrowd() {
             }}
           >
             {Object.keys(CITY_PLACES).map((c) => (
-              <option key={c}>{c}</option>
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </select>
         </div>
@@ -122,10 +373,15 @@ export default function SmartTransportCrowd() {
         <div className="planner-grid">
           <div>
             <label>From</label>
-            <select value={from} onChange={(e) => setFrom(e.target.value)}>
+            <select
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+            >
               <option value="">Select</option>
               {PLACES.map((p) => (
-                <option key={p}>{p}</option>
+                <option key={p} value={p}>
+                  {p}
+                </option>
               ))}
             </select>
           </div>
@@ -134,10 +390,15 @@ export default function SmartTransportCrowd() {
 
           <div>
             <label>To</label>
-            <select value={to} onChange={(e) => setTo(e.target.value)}>
+            <select
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+            >
               <option value="">Select</option>
-              {PLACES.map((p) => (
-                <option key={p}>{p}</option>
+              {PLACES.filter((p) => p !== from).map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
               ))}
             </select>
           </div>
@@ -145,14 +406,23 @@ export default function SmartTransportCrowd() {
 
         <div>
           <label>Transport Mode</label>
-          <select value={mode} onChange={(e) => setMode(e.target.value)}>
+          <select
+            value={mode}
+            onChange={(e) => setMode(e.target.value)}
+          >
             {TRANSPORT_MODES.map((m) => (
-              <option key={m}>{m}</option>
+              <option key={m} value={m}>
+                {m}
+              </option>
             ))}
           </select>
         </div>
 
-        <button className="planner-btn" onClick={calculateCrowd} disabled={!from || !to || from === to}>
+        <button
+          className="planner-btn"
+          onClick={calculateCrowd}
+          disabled={!from || !to || from === to}
+        >
           Predict Transport Crowd
         </button>
 
@@ -183,7 +453,9 @@ export default function SmartTransportCrowd() {
                 </div>
               </div>
 
-              <div className="planner-advice">🚍 {result.recommendation}</div>
+              <div className="planner-advice">
+                🚍 {result.recommendation}
+              </div>
             </div>
           </div>
         )}
@@ -191,5 +463,3 @@ export default function SmartTransportCrowd() {
     </section>
   );
 }
-
-
