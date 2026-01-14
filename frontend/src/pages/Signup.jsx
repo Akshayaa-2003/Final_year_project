@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Signup.css";
 
@@ -8,6 +8,14 @@ const API_BASE_URL =
 
 export default function Signup() {
   const navigate = useNavigate();
+
+  // 🔁 Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -33,18 +41,15 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/auth/signup`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: name.trim(),
-            email: email.trim(),
-            password,
-          }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+        }),
+      });
 
       let data;
       try {
@@ -58,8 +63,11 @@ export default function Signup() {
         return;
       }
 
-      // ✅ Save user
+      // ✅ SAVE TOKEN + USER (IMPORTANT 🔥)
+      localStorage.setItem("authToken", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+
+      // ✅ Go to Dashboard
       navigate("/", { replace: true });
 
     } catch (error) {
@@ -120,28 +128,20 @@ export default function Signup() {
                   type="password"
                   placeholder="Confirm password"
                   value={confirmPassword}
-                  onChange={(e) =>
-                    setConfirmPassword(e.target.value)
-                  }
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                 />
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="auth-btn"
-              disabled={loading}
-            >
+            <button type="submit" className="auth-btn" disabled={loading}>
               {loading ? "Creating account..." : "Sign Up"}
             </button>
           </form>
 
           <p className="switch-text">
             Already have an account?{" "}
-            <span onClick={() => navigate("/login")}>
-              Login
-            </span>
+            <span onClick={() => navigate("/login")}>Login</span>
           </p>
         </div>
       </div>

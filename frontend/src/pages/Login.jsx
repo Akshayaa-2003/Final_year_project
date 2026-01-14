@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
@@ -8,6 +8,14 @@ const API_BASE_URL =
 
 export default function Login() {
   const navigate = useNavigate();
+
+  // 🔁 If already logged in → dashboard
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,17 +33,14 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: email.trim(),
-            password,
-          }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
+      });
 
       let data;
       try {
@@ -49,8 +54,11 @@ export default function Login() {
         return;
       }
 
-      // ✅ Save user
+      // ✅ SAVE TOKEN + USER
+      localStorage.setItem("authToken", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+
+      // ✅ Go to dashboard
       navigate("/", { replace: true });
 
     } catch (error) {
@@ -66,14 +74,14 @@ export default function Login() {
       <div className="auth-container">
         <div className="auth-card">
           <h2>Welcome Back</h2>
-          <p className="subtitle">Login to continue</p>
+          <p className="subtitle">Login to your account</p>
 
           <form onSubmit={handleSubmit}>
             <div className="input-group">
               <label>Email</label>
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -84,7 +92,7 @@ export default function Login() {
               <label>Password</label>
               <input
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -98,7 +106,7 @@ export default function Login() {
 
           <p className="switch-text">
             Don’t have an account?{" "}
-            <span onClick={() => navigate("/signup")}>Sign up</span>
+            <span onClick={() => navigate("/signup")}>Sign Up</span>
           </p>
         </div>
       </div>

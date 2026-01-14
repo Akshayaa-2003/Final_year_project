@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import "./ResultSection.css";
 
 export default function ResultSection({ result }) {
@@ -7,7 +7,7 @@ export default function ResultSection({ result }) {
   if (!result || typeof result !== "object") return null;
 
   /* ===============================
-     SAFE FIELD MAPPING
+     SAFE FIELD NORMALIZATION
   =============================== */
   const city = result.city ?? "—";
 
@@ -28,65 +28,99 @@ export default function ResultSection({ result }) {
     result.crowdLevel ??
     "Medium";
 
-  const crowd =
-    ["Low", "Medium", "High"].includes(rawCrowd)
-      ? rawCrowd
-      : "Medium";
+  const crowd = ["Low", "Medium", "High"].includes(rawCrowd)
+    ? rawCrowd
+    : "Medium";
 
   const reason = result.reason ?? null;
   const recommendation = result.recommendation ?? null;
 
   const time =
-    result.time ??
-    new Date().toLocaleString("en-IN");
+    result.time ?? new Date().toLocaleString("en-IN");
 
   /* ===============================
-     DEMO RANDOM (NO HOOKS 🔥)
+     STABLE DEMO VALUES (NO RE-RENDER BUG)
   =============================== */
-  const tags = {
-    Low: ["Smooth Movement", "Free Flow", "No Delay Expected"],
-    Medium: [
-      "Moderate Flow",
-      "Balanced Crowd",
-      "Slight Delay Possible",
-      "Normal Public Movement"
-    ],
-    High: ["Heavy Congestion", "Peak Crowd Zone", "Delay Expected"]
-  };
+  const { label, confidence } = useMemo(() => {
+    const tags = {
+      Low: ["Smooth Movement", "Free Flow", "No Delay Expected"],
+      Medium: [
+        "Moderate Flow",
+        "Balanced Crowd",
+        "Slight Delay Possible"
+      ],
+      High: ["Heavy Congestion", "Peak Crowd Zone", "Delay Expected"]
+    };
 
-  const demoLabel =
-    tags[crowd][Math.floor(Math.random() * tags[crowd].length)];
+    const confidenceBase = {
+      Low: 60,
+      Medium: 75,
+      High: 90
+    };
 
-  const demoPercent =
-    crowd === "Low"
-      ? 55 + Math.floor(Math.random() * 15)
-      : crowd === "Medium"
-      ? 70 + Math.floor(Math.random() * 15)
-      : 85 + Math.floor(Math.random() * 10);
+    const list = tags[crowd];
+    const label =
+      list[Math.floor(Math.random() * list.length)];
+
+    const confidence =
+      confidenceBase[crowd] +
+      Math.floor(Math.random() * 6);
+
+    return { label, confidence };
+  }, [crowd]);
 
   /* ===============================
      PDF DOWNLOAD
   =============================== */
   const handleDownloadPDF = () => {
     setLoading(true);
+
     const win = window.open("", "_blank");
-    if (!win) return setLoading(false);
+    if (!win) {
+      setLoading(false);
+      alert("Popup blocked. Please allow popups.");
+      return;
+    }
 
     win.document.write(`
-      <h2>Crowd Prediction Report</h2>
-      <p><b>City:</b> ${city}</p>
-      <p><b>Location:</b> ${location}</p>
-      <p><b>Activity:</b> ${activity}</p>
-      <p><b>Crowd:</b> ${crowd} (${demoPercent}%)</p>
-      <p><b>Note:</b> ${demoLabel}</p>
-      <p>${time}</p>
+      <html>
+        <head>
+          <title>Crowd Prediction Report</title>
+          <style>
+            body {
+              font-family: Inter, Arial, sans-serif;
+              padding: 24px;
+            }
+            h2 {
+              color: #dc2626;
+            }
+            p {
+              font-size: 14px;
+              margin: 6px 0;
+            }
+          </style>
+        </head>
+        <body>
+          <h2>Crowd Prediction Report</h2>
+          <p><b>City:</b> ${city}</p>
+          <p><b>Location:</b> ${location}</p>
+          <p><b>Activity:</b> ${activity}</p>
+          <p><b>Crowd Level:</b> ${crowd} (${confidence}%)</p>
+          <p><b>Note:</b> ${label}</p>
+          ${reason ? `<p><b>Reason:</b> ${reason}</p>` : ""}
+          ${recommendation ? `<p><b>Recommendation:</b> ${recommendation}</p>` : ""}
+          <p style="margin-top:12px;color:#6b7280">${time}</p>
+        </body>
+      </html>
     `);
+
+    win.document.close();
 
     setTimeout(() => {
       win.print();
       win.close();
       setLoading(false);
-    }, 300);
+    }, 400);
   };
 
   return (
@@ -96,48 +130,33 @@ export default function ResultSection({ result }) {
           <h2 className="result-title">Prediction Results</h2>
 
           <div className="result-grid">
-            <div className="result-item">
-              <span className="item-label">City</span>
-              <span className="item-value">{city}</span>
-            </div>
-
-            <div className="result-item">
-              <span className="item-label">Location</span>
-              <span className="item-value">{location}</span>
-            </div>
-
-            <div className="result-item">
-              <span className="item-label">Activity</span>
-              <span className="item-value">{activity}</span>
-            </div>
-
-            <div className="result-item">
-              <span className="item-label">Confidence</span>
-              <span className="item-value">{demoPercent}%</span>
-            </div>
+            <ResultItem label="City" value={city} />
+            <ResultItem label="Location" value={location} />
+            <ResultItem label="Activity" value={activity} />
+            <ResultItem label="Confidence" value={`${confidence}%`} />
 
             <div className="result-item full-width">
               <span className="item-label">Crowd Level</span>
               <span className={`item-value large ${crowd.toLowerCase()}`}>
-                {crowd}{" "}
-                <small style={{ color: "#6b7280" }}>
-                  ({demoLabel})
-                </small>
+                {crowd}
+                <small className="item-sub">({label})</small>
               </span>
             </div>
 
             {reason && (
-              <div className="result-item full-width">
-                <span className="item-label">Reason</span>
-                <span className="item-value">{reason}</span>
-              </div>
+              <ResultItem
+                full
+                label="Reason"
+                value={reason}
+              />
             )}
 
             {recommendation && (
-              <div className="result-item full-width">
-                <span className="item-label">Recommendation</span>
-                <span className="item-value">{recommendation}</span>
-              </div>
+              <ResultItem
+                full
+                label="Recommendation"
+                value={recommendation}
+              />
             )}
           </div>
 
@@ -151,5 +170,17 @@ export default function ResultSection({ result }) {
         </div>
       </div>
     </section>
+  );
+}
+
+/* ===============================
+   SMALL CLEAN SUB COMPONENT
+================================ */
+function ResultItem({ label, value, full }) {
+  return (
+    <div className={`result-item ${full ? "full-width" : ""}`}>
+      <span className="item-label">{label}</span>
+      <span className="item-value">{value}</span>
+    </div>
   );
 }
