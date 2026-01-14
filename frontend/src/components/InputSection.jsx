@@ -8,8 +8,6 @@ import { popularPlaces } from "../data/popularPlaces";
 ================================ */
 const predictCrowdLevel = ({ city, locationType, place }) => {
   let score = 0;
-
-  // ✅ safety guard
   const type = (locationType || "").toLowerCase();
 
   if (city) score += 1;
@@ -53,12 +51,7 @@ const predictCrowdLevel = ({ city, locationType, place }) => {
     recommendation = "Avoid peak hours if possible";
   }
 
-  return {
-    crowdLevel,
-    confidence,
-    reason,
-    recommendation
-  };
+  return { crowdLevel, confidence, reason, recommendation };
 };
 
 export default function InputSection({ onPredict, detectedCity }) {
@@ -81,7 +74,7 @@ export default function InputSection({ onPredict, detectedCity }) {
   useEffect(() => {
     setLoadingCities(true);
     try {
-      setCities(Object.keys(popularPlaces));
+      setCities(Object.keys(popularPlaces || {}));
     } catch {
       setCityError("Failed to load cities");
     } finally {
@@ -100,7 +93,7 @@ export default function InputSection({ onPredict, detectedCity }) {
 
   /* LOAD LOCATION TYPES */
   useEffect(() => {
-    if (!city) {
+    if (!city || !popularPlaces?.[city]) {
       setLocationTypes([]);
       setLocationType("");
       setPlaces([]);
@@ -121,7 +114,7 @@ export default function InputSection({ onPredict, detectedCity }) {
 
   /* LOAD PLACES */
   useEffect(() => {
-    if (!city || !locationType) {
+    if (!city || !locationType || !popularPlaces?.[city]) {
       setPlaces([]);
       setPlace("");
       return;
@@ -130,7 +123,7 @@ export default function InputSection({ onPredict, detectedCity }) {
     setLoadingPlaces(true);
     try {
       const key = locationType.replaceAll(" ", "_");
-      const raw = popularPlaces[city][key];
+      const raw = popularPlaces[city]?.[key];
       setPlaces(Array.isArray(raw) ? raw.map((p) => p.name) : []);
     } finally {
       setLoadingPlaces(false);
@@ -139,7 +132,7 @@ export default function InputSection({ onPredict, detectedCity }) {
 
   /* PREDICT */
   const handlePredict = () => {
-    if (!city || !locationType) return;
+    if (!city || !locationType || predictLoading) return;
 
     setPredictLoading(true);
 
@@ -149,7 +142,6 @@ export default function InputSection({ onPredict, detectedCity }) {
       place: place || "General"
     };
 
-    // ⏳ demo realism
     setTimeout(() => {
       const mixed = predictCrowdLevel(payload);
 
@@ -159,7 +151,9 @@ export default function InputSection({ onPredict, detectedCity }) {
         time: new Date().toLocaleString("en-IN")
       };
 
-      onPredict(result);
+      if (typeof onPredict === "function") {
+        onPredict(result);
+      }
 
       document.querySelector("#results")?.scrollIntoView({
         behavior: "smooth"
@@ -182,7 +176,11 @@ export default function InputSection({ onPredict, detectedCity }) {
             <label>City</label>
             <select
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onChange={(e) => {
+                setCity(e.target.value);
+                setLocationType("");
+                setPlace("");
+              }}
               disabled={loadingCities}
             >
               <option value="">
