@@ -1,72 +1,55 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "./Login.css";
-
-// ✅ Vite env with safe fallback (local dev)
-const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL || "http://localhost:10000").replace(/\/$/, "");
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // 🔁 If already logged in → dashboard
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
+    const user = localStorage.getItem("studentUser");
+    if (user) {
       navigate("/", { replace: true });
     }
   }, [navigate]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    if (loading) return;
 
-    if (!email || !password) {
-      alert("Please fill all fields");
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail || !password) {
+      setError("Please fill all fields");
       return;
     }
 
-    if (loading) return;
+    const users = JSON.parse(localStorage.getItem("students")) || [];
+
+    const user = users.find(
+      (u) => u.email === cleanEmail && u.password === password
+    );
+
+    if (!user) {
+      setError("Invalid email or password");
+      return;
+    }
+
     setLoading(true);
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-        }),
-      });
+    // ✅ Persist logged-in user
+    localStorage.setItem("studentUser", JSON.stringify(user));
+    login(user);
 
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error("Invalid server response");
-      }
-
-      if (!response.ok || !data.success) {
-        alert(data?.message || "Login failed");
-        return;
-      }
-
-      // ✅ SAVE TOKEN + USER
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // ✅ Go to dashboard
-      navigate("/", { replace: true });
-
-    } catch (error) {
-      console.error("LOGIN ERROR:", error);
-      alert("Server not reachable");
-    } finally {
-      setLoading(false);
-    }
+    // ✅ Go to dashboard
+    navigate("/", { replace: true });
   };
 
   return (
@@ -76,14 +59,19 @@ export default function Login() {
           <h2>Welcome Back</h2>
           <p className="subtitle">Login to your account</p>
 
-          <form onSubmit={handleSubmit}>
+          {error && <div className="error">{error}</div>}
+
+          <form onSubmit={handleSubmit} autoComplete="off">
             <div className="input-group">
               <label>Email</label>
               <input
                 type="email"
                 placeholder="Your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError("");
+                }}
                 required
               />
             </div>
@@ -94,7 +82,10 @@ export default function Login() {
                 type="password"
                 placeholder="Your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError("");
+                }}
                 required
               />
             </div>
@@ -106,7 +97,7 @@ export default function Login() {
 
           <p className="switch-text">
             Don’t have an account?{" "}
-            <span onClick={() => navigate("/signup")}>Sign Up</span>
+            <Link to="/signup">Sign Up</Link>
           </p>
         </div>
       </div>
