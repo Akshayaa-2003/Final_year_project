@@ -1,81 +1,69 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "./Signup.css";
-
-// ✅ Vite env with safe fallback (local dev)
-const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL || "http://localhost:10000").replace(/\/$/, "");
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // 🔁 Redirect if already logged in
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
+    const user = localStorage.getItem("studentUser");
+    if (user) {
       navigate("/", { replace: true });
     }
   }, [navigate]);
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirm: "",
+  });
+
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    // ✅ Validation
-    if (!name || !email || !password || !confirmPassword) {
-      alert("Please fill all fields");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
-
     if (loading) return;
+
+    const name = form.name.trim();
+    const email = form.email.trim().toLowerCase();
+    const password = form.password;
+    const confirm = form.confirm;
+
+    if (!name || !email || !password || !confirm) {
+      setError("All fields are required");
+      return;
+    }
+
+    if (password !== confirm) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    const users = JSON.parse(localStorage.getItem("students")) || [];
+
+    if (users.some((u) => u.email === email)) {
+      setError("Email already exists");
+      return;
+    }
+
     setLoading(true);
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          password,
-        }),
-      });
+    const newUser = { name, email, password };
 
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error("Invalid server response");
-      }
+    // ✅ Save users list
+    localStorage.setItem("students", JSON.stringify([...users, newUser]));
 
-      if (!response.ok || !data.success) {
-        alert(data?.message || "Signup failed");
-        return;
-      }
+    // ✅ Persist logged-in user
+    localStorage.setItem("studentUser", JSON.stringify(newUser));
+    login(newUser);
 
-      // ✅ SAVE TOKEN + USER (IMPORTANT 🔥)
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // ✅ Go to Dashboard
-      navigate("/", { replace: true });
-
-    } catch (error) {
-      console.error("SIGNUP ERROR:", error);
-      alert("Server not reachable");
-    } finally {
-      setLoading(false);
-    }
+    // ✅ Go to dashboard
+    navigate("/", { replace: true });
   };
 
   return (
@@ -85,15 +73,20 @@ export default function Signup() {
           <h2>Create Account</h2>
           <p className="subtitle">Sign up to get started</p>
 
-          <form onSubmit={handleSubmit}>
+          {error && <div className="error">{error}</div>}
+
+          <form onSubmit={handleSubmit} autoComplete="off">
             <div className="row">
               <div className="input-group">
                 <label>Name</label>
                 <input
                   type="text"
                   placeholder="Your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={form.name}
+                  onChange={(e) => {
+                    setForm({ ...form, name: e.target.value });
+                    setError("");
+                  }}
                   required
                 />
               </div>
@@ -103,8 +96,11 @@ export default function Signup() {
                 <input
                   type="email"
                   placeholder="Your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={form.email}
+                  onChange={(e) => {
+                    setForm({ ...form, email: e.target.value });
+                    setError("");
+                  }}
                   required
                 />
               </div>
@@ -116,8 +112,11 @@ export default function Signup() {
                 <input
                   type="password"
                   placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={form.password}
+                  onChange={(e) => {
+                    setForm({ ...form, password: e.target.value });
+                    setError("");
+                  }}
                   required
                 />
               </div>
@@ -127,8 +126,11 @@ export default function Signup() {
                 <input
                   type="password"
                   placeholder="Confirm password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  value={form.confirm}
+                  onChange={(e) => {
+                    setForm({ ...form, confirm: e.target.value });
+                    setError("");
+                  }}
                   required
                 />
               </div>
@@ -141,7 +143,7 @@ export default function Signup() {
 
           <p className="switch-text">
             Already have an account?{" "}
-            <span onClick={() => navigate("/login")}>Login</span>
+            <Link to="/login">Login</Link>
           </p>
         </div>
       </div>

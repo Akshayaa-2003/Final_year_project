@@ -1,31 +1,26 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "./Navbar.css";
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
   const [open, setOpen] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const dropdownRef = useRef(null);
-
-  let user = null;
-  try {
-    user = JSON.parse(localStorage.getItem("user"));
-  } catch {
-    user = null;
-  }
 
   // 🔴 Open confirm modal
   const handleLogoutClick = () => {
     setShowConfirm(true);
   };
 
-  // ✅ Confirm logout
+  // ✅ Confirm logout (AuthContext handles cleanup + redirect)
   const confirmLogout = () => {
-    localStorage.removeItem("user");
     setShowConfirm(false);
     setOpen(false);
-    navigate("/login", { replace: true });
+    logout();
   };
 
   // 🔥 Close dropdown on outside click

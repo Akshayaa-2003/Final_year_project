@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "./Profile.css";
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const user = JSON.parse(localStorage.getItem("user"));
-
+  // 🔒 Safety fallback (normally ProtectedRoute handles this)
   if (!user) {
-    navigate("/login", { replace: true });
     return null;
   }
 
