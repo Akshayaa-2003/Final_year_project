@@ -9,6 +9,8 @@ export default function SocialCrowdSection({ places }) {
     );
   }
 
+  const CROWD_API_KEY = pub_9a05c48d3a314e88a9cd3de74ba8e845;
+
   const hour = new Date().getHours();
 
   const classify = () => {

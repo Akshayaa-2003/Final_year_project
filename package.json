@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "ml-random-forest": "^2.1.0"
+  }
+}

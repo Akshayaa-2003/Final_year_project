@@ -28,139 +28,118 @@ body {
 }
 
 /* ===============================
-   PAGE BACKGROUND
+   PAGE BACKGROUND & CARD
 ================================ */
 .planner-section {
   min-height: 100vh;
-  padding: 64px 16px;
-  background:
-    radial-gradient(circle at 10% 10%, #fee2e2, transparent 45%),
-    radial-gradient(circle at 90% 90%, #fecaca, transparent 45%),
-    linear-gradient(135deg, #fff7f7, #ffffff);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top, #fde2e2, #fff);
+  padding: 40px 20px;
 }
 
-/* ===============================
-   MAIN CARD
-================================ */
 .planner-card {
   width: 100%;
-  max-width: 1180px;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(24px);
-  border-radius: var(--radius-lg);
-  padding: 44px;
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 44px;
-  box-shadow:
-    0 32px 90px rgba(0, 0, 0, 0.14),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+  max-width: 900px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.1);
 }
 
 .planner-card h2 {
-  grid-column: 1 / -1;
   text-align: center;
-  font-size: 2.5rem;
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 24px;
+  color: #dc2626;
+  font-size: 2rem;
+  margin-bottom: 30px;
 }
 
 /* ===============================
-   INPUT SECTION
+   FORM GRID
 ================================ */
-.planner-inputs {
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.form-group {
   display: flex;
   flex-direction: column;
-  gap: 26px;
 }
 
-select {
-  width: 100%;
-  padding: 16px 18px;
-  border-radius: var(--radius-md);
-  border: 1.6px solid rgba(220, 38, 38, 0.25);
-  background: rgba(255, 255, 255, 0.95);
-  font-size: 0.95rem;
-  transition: 0.25s ease;
+.form-group.full {
+  grid-column: 1 / -1;
 }
 
-select:hover {
-  border-color: rgba(220, 38, 38, 0.55);
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #334155;
 }
 
-select:focus {
+.form-group select {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #fca5a5;
+  font-size: 1rem;
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.14);
+  transition: 0.2s;
 }
 
-/* FROM → TO */
-.planner-grid {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 18px;
-  align-items: center;
-}
-
-.arrow {
-  font-size: 2rem;
-  font-weight: 900;
-  color: var(--primary);
+.form-group select:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
 }
 
 /* BUTTON */
-.planner-inputs button {
-  padding: 18px;
-  border-radius: var(--radius-md);
+.form-group button {
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
   border: none;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff;
-  font-size: 1.05rem;
-  font-weight: 800;
+  background: #ef4444;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 18px 44px rgba(220, 38, 38, 0.45);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: 0.2s;
 }
 
-.planner-inputs button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 24px 60px rgba(220, 38, 38, 0.6);
+.form-group button:hover {
+  background: #dc2626;
 }
 
-.planner-inputs button:disabled {
-  opacity: 0.55;
+.form-group button:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
 /* ===============================
-   RESULT CARD
+   RESULT CARD – BASE
 ================================ */
 .result-card {
+  margin-top: 30px;
   padding: 36px;
-  border-radius: var(--radius-lg);
-  border: 2px solid currentColor;
-  animation: fadeSlide 0.45s ease;
+  border-radius: 26px;
   position: relative;
+  animation: fadeSlide 0.45s ease;
+  background: #ffffff;
+  border: 2px solid transparent;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
 }
 
+/* TOP COLOR BAR */
 .result-card::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
-  height: 6px;
+  height: 8px;
   width: 100%;
+  border-radius: 26px 26px 0 0;
   background: currentColor;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 /* HEADER */
@@ -168,22 +147,23 @@ select:focus {
   text-align: center;
   background: #ffffff;
   padding: 18px;
-  border-radius: var(--radius-md);
+  border-radius: 18px;
   margin-bottom: 22px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
 }
 
 .result-header strong {
   display: block;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 900;
 }
 
 .result-header span {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: #6b7280;
 }
 
-/* STATS */
+/* STATS BOXES */
 .result-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -194,21 +174,21 @@ select:focus {
 .result-stats div {
   background: #ffffff;
   padding: 18px;
-  border-radius: var(--radius-md);
+  border-radius: 18px;
   text-align: center;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.1);
 }
 
 .result-stats label {
   font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: var(--text-muted);
+  color: #6b7280;
 }
 
 .result-stats span {
   display: block;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 900;
   margin-top: 6px;
 }
@@ -216,26 +196,39 @@ select:focus {
 /* ADVICE */
 .result-advice {
   padding: 18px;
-  border-radius: var(--radius-md);
+  border-radius: 18px;
   text-align: center;
   font-weight: 900;
   background: #ffffff;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
 }
 
-/* STATES */
+/* ===============================
+   STATES (COLOR THEMES)
+================================ */
+
+/* LOW = GREEN */
 .result-card.low {
-  color: var(--success);
-  background: linear-gradient(135deg, rgba(22, 163, 74, 0.14), #ffffff);
+  color: #16a34a;
+  border-color: #16a34a;
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.15), #ffffff);
+  box-shadow: 0 20px 40px rgba(22, 163, 74, 0.25);
 }
 
+/* MEDIUM = ORANGE */
 .result-card.medium {
-  color: var(--warning);
+  color: #d97706;
+  border-color: #d97706;
   background: linear-gradient(135deg, rgba(217, 119, 6, 0.18), #ffffff);
+  box-shadow: 0 20px 40px rgba(217, 119, 6, 0.28);
 }
 
+/* HIGH = RED */
 .result-card.high {
-  color: var(--danger);
+  color: #dc2626;
+  border-color: #dc2626;
   background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), #ffffff);
+  box-shadow: 0 20px 40px rgba(220, 38, 38, 0.35);
 }
 
 /* ===============================
@@ -255,20 +248,12 @@ select:focus {
 /* ===============================
    RESPONSIVE
 ================================ */
-@media (max-width: 900px) {
-  .planner-card {
+@media (max-width: 700px) {
+  .form-grid {
     grid-template-columns: 1fr;
-    padding: 32px 24px;
   }
-}
 
-@media (max-width: 600px) {
-  .planner-grid,
   .result-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .arrow {
-    display: none;
+    grid-template-columns: 1fr 1fr;
   }
 }

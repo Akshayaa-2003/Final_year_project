@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import "./LiveLocationSection.css";
 
-/* ---------- API BASE (BULLETPROOF) ---------- */
+/* ---------- API BASE ---------- */
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
 ).replace(/\/+$/, "");
 
 /* ---------- HELPERS ---------- */
-
 const normalizePlaces = (data) => {
   if (!data) return [];
   if (Array.isArray(data)) return data.filter(Boolean);
@@ -18,7 +17,6 @@ const normalizePlaces = (data) => {
 
 const detectAreaType = (places = []) => {
   if (!places.length) return "Public Area";
-
   const text = places.join(" ").toLowerCase();
 
   if (/hospital|clinic|medical/.test(text)) return "Hospital Area";
@@ -38,7 +36,6 @@ const calculateCrowdLevel = (count) => {
 export default function LiveLocationSection() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const [area, setArea] = useState("");
   const [areaType, setAreaType] = useState("");
   const [places, setPlaces] = useState([]);
@@ -49,11 +46,14 @@ export default function LiveLocationSection() {
   /* ---------- BACKEND CALL ---------- */
   const fetchCrowdData = useCallback(async (lat, lng) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/crowd/predict`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lat, lng }),
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/api/crowd/predict`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lat, lng }),
+        }
+      );
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "API error");
@@ -90,7 +90,6 @@ export default function LiveLocationSection() {
         const roundedAccuracy = Math.round(coords.accuracy);
         setAccuracy(roundedAccuracy);
 
-        // ⚠️ Allow desktop but warn
         if (roundedAccuracy > 5000) {
           setError(
             "Using approximate location (desktop). Results may be less accurate."
@@ -118,7 +117,7 @@ export default function LiveLocationSection() {
     );
   };
 
-  /* ---------- AUTO REFRESH (30 mins) ---------- */
+  /* ---------- AUTO REFRESH ---------- */
   useEffect(() => {
     if (!coords) return;
 
@@ -156,9 +155,7 @@ export default function LiveLocationSection() {
             <div className="area-box">
               <span className="label">Your Current Area</span>
               <h3>{area}</h3>
-              <p className="accuracy">
-                GPS Accuracy: ±{accuracy} meters
-              </p>
+              <p className="accuracy">GPS Accuracy: ±{accuracy} meters</p>
               <p className="area-type">
                 Area Type: <strong>{areaType}</strong>
               </p>
@@ -181,7 +178,9 @@ export default function LiveLocationSection() {
               </div>
             </div>
 
-            <div className={`crowd-result ${crowdLevel.toLowerCase()}`}>
+            <div
+              className={`crowd-result ${crowdLevel.toLowerCase()}`}
+            >
               <span>Estimated Crowd Level</span>
               <strong>{crowdLevel}</strong>
             </div>
